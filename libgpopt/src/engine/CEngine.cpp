@@ -2245,6 +2245,19 @@ CEngine::FCheckEnfdProps
 	pdrgpexprEnforcers->Release();
 	pexpr->Release();
 	
+	{
+		{
+			CAutoTrace at(m_pmp);
+			at.Os() << "MEMO after FCheckEnfdProps" << std::endl;
+		}
+
+		{
+			CAutoTrace at(m_pmp);
+			at.Os() << *this;
+		}
+	}
+
+
 	return FOptimize(epetOrder, epetDistribution, epetRewindability, epetPartitionPropagation);
 }
 

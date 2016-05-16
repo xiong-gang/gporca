@@ -64,12 +64,14 @@ namespace gpopt
 				return (m_fDuplicateSensitive || !pds->m_fDuplicateSensitive);
 			}
 
-			// exact match against given hashed distribution
-			BOOL FMatchHashedDistribution(const CDistributionSpecHashed *pdshashed) const;
 
 			// private copy ctor
 			CDistributionSpecHashed(const CDistributionSpecHashed &);
-			
+
+		protected:
+			// exact match against given hashed distribution
+			BOOL FMatchHashedDistribution(const CDistributionSpecHashed *pdshashed) const;
+
 		public:
 		
 			// ctor
@@ -170,7 +172,7 @@ namespace gpopt
 				)
 			{
 				GPOS_ASSERT(NULL != pds);
-				GPOS_ASSERT(EdtHashed == pds->Edt());
+				GPOS_ASSERT(EdtHashed == pds->Edt() || EdtStrictHashed == pds->Edt());
 
 				return dynamic_cast<CDistributionSpecHashed*>(pds);
 			}

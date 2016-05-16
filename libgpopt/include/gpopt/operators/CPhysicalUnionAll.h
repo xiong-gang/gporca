@@ -18,6 +18,7 @@ namespace gpopt
 {
 	// fwd declaration
 	class CDistributionSpecHashed;
+	class CDistributionSpecStrictHashed;
 
 	//---------------------------------------------------------------------------
 	//	@class:
@@ -52,7 +53,7 @@ namespace gpopt
 			DrgPul *PdrgpulMap(IMemoryPool *pmp, DrgPexpr *pdrgpexpr, ULONG ulChildIndex) const;
 
 			// compute required hashed distribution of the n-th child
-			CDistributionSpecHashed *PdshashedPassThru(IMemoryPool *pmp, CDistributionSpecHashed *pdshashedRequired, ULONG ulChildIndex) const;
+			CDistributionSpecStrictHashed *PdshashedPassThru(IMemoryPool *pmp, CDistributionSpecHashed *pdshashedRequired, ULONG ulChildIndex) const;
 
 			// derive hashed distribution from child operators
 			CDistributionSpecHashed *PdshashedDerive(IMemoryPool *pmp, CExpressionHandle &exprhdl) const;

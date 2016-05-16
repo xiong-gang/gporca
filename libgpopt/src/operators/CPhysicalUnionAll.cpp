@@ -20,6 +20,7 @@
 #include "gpopt/base/CDistributionSpecAny.h"
 #include "gpopt/base/CDistributionSpecSingleton.h"
 #include "gpopt/base/CDistributionSpecHashed.h"
+#include "gpopt/base/CDistributionSpecStrictHashed.h"
 #include "gpopt/base/CDistributionSpecReplicated.h"
 #include "gpopt/base/CDistributionSpecRandom.h"
 #include "gpopt/base/CDistributionSpecNonSingleton.h"
@@ -96,6 +97,28 @@ CPhysicalUnionAll::~CPhysicalUnionAll()
 	m_pdrgpcrsInput->Release();
 }
 
+static
+CDistributionSpecStrictHashed *
+BuildDistribution
+(
+		IMemoryPool *pmp,
+		DrgPcr * pdrgpcr,
+		ULONG ulCols
+)
+{
+	DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
+	for (ULONG ulCol = 0; ulCol < ulCols; ulCol++)
+	{
+		CExpression *pexpr = CUtils::PexprScalarIdent(pmp, (*pdrgpcr)[ulCol]);
+		pdrgpexpr->Append(pexpr);
+	}
+
+	// create a hashed distribution on input columns of the current child
+	CDistributionSpecStrictHashed *pdshashed = GPOS_NEW(pmp) CDistributionSpecStrictHashed(pdrgpexpr, true /*fNullsColocated*/);
+
+	return pdshashed;
+}
+
 //---------------------------------------------------------------------------
 //	@function:
 //		CPhysicalUnionAll::BuildHashedDistributions
@@ -122,20 +145,11 @@ CPhysicalUnionAll::BuildHashedDistributions
 	const ULONG ulArity = m_pdrgpdrgpcrInput->UlLength();
 	for (ULONG ulChild = 0; ulChild < ulArity; ulChild++)
 	{
-		DrgPcr *pdrgpcr = (*m_pdrgpdrgpcrInput)[ulChild];
-		DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
-		for (ULONG ulCol = 0; ulCol < ulCols; ulCol++)
-		{
-			CExpression *pexpr = CUtils::PexprScalarIdent(pmp, (*pdrgpcr)[ulCol]);
-			pdrgpexpr->Append(pexpr);
-		}
-
 		// create a hashed distribution on input columns of the current child
-		CDistributionSpecHashed *pdshashed = GPOS_NEW(pmp) CDistributionSpecHashed(pdrgpexpr, true /*fNullsColocated*/);
+		CDistributionSpecHashed *pdshashed = BuildDistribution(pmp, (*m_pdrgpdrgpcrInput)[ulChild], ulCols);
 		m_pdrgpds->Append(pdshashed);
 	}
 }
-
 
 //---------------------------------------------------------------------------
 //	@function:
@@ -423,7 +437,7 @@ CPhysicalUnionAll::PdsMatching
 //		Compute required hashed distribution of the n-th child
 //
 //---------------------------------------------------------------------------
-CDistributionSpecHashed *
+CDistributionSpecStrictHashed *
 CPhysicalUnionAll::PdshashedPassThru
 	(
 	IMemoryPool *pmp,
@@ -467,7 +481,7 @@ CPhysicalUnionAll::PdshashedPassThru
 
 	if (0 < pdrgpexprChildRequired->UlLength())
 	{
-		return GPOS_NEW(pmp) CDistributionSpecHashed(pdrgpexprChildRequired, true /* fNullsCollocated */);
+		return GPOS_NEW(pmp) CDistributionSpecStrictHashed(pdrgpexprChildRequired, true /* fNullsCollocated */);
 	}
 
 	// failed to create a matching hashed distribution
@@ -514,10 +528,19 @@ CPhysicalUnionAll::PdsRequired
 		return pds;
 	}
 
-	if (0 == ulOptReq && CDistributionSpec::EdtHashed == pdsRequired->Edt())
+	if (1 == ulOptReq)
 	{
-		// attempt passing requested hashed distribution to children
-		CDistributionSpecHashed *pdshashed = PdshashedPassThru(pmp, CDistributionSpecHashed::PdsConvert(pdsRequired), ulChildIndex);
+		CDistributionSpecStrictHashed *pdshashed = NULL;
+
+		if (CDistributionSpec::EdtHashed == pdsRequired->Edt())
+		{
+			// attempt passing requested hashed distribution to children
+			pdshashed = PdshashedPassThru(pmp, CDistributionSpecHashed::PdsConvert(pdsRequired), ulChildIndex);
+		}else {
+			// attempt passing requested hashed distribution to children
+			pdshashed = BuildDistribution(pmp, (*m_pdrgpdrgpcrInput)[ulChildIndex], m_pdrgpcrOutput->UlLength());
+		}
+
 		if (NULL != pdshashed)
 		{
 			return pdshashed;
@@ -574,9 +597,13 @@ CRewindabilitySpec *
 CPhysicalUnionAll::PrsRequired
 	(
 	IMemoryPool *pmp,
-	CExpressionHandle &exprhdl,
-	CRewindabilitySpec *prsRequired,
-	ULONG ulChildIndex,
+	CExpressionHandle &,
+	CRewindabilitySpec *,
+	ULONG
+#ifdef GPOS_DEBUG
+	ulChildIndex
+#endif // GPOS_DEBUG
+	,
 	DrgPdp *, // pdrgpdpCtxt
 	ULONG // ulOptReq
 	)
@@ -584,7 +611,8 @@ CPhysicalUnionAll::PrsRequired
 {
 	GPOS_ASSERT(m_pdrgpdrgpcrInput->UlLength() > ulChildIndex);
 
-	return PrsPassThru(pmp, exprhdl, prsRequired, ulChildIndex);
+	// Force all children (for every ulChildIndex) to be rewindable, effectively forcing Materialize
+	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
 }
 
 //---------------------------------------------------------------------------

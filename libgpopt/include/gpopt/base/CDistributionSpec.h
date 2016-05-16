@@ -38,6 +38,7 @@ namespace gpopt
 			enum EDistributionType
 			{
 				EdtHashed,			// data is hashed across all segments
+				EdtStrictHashed,	// data is hashed across all segments, and CPhysicalMotionHashDistribute is always enforced
 				EdtReplicated,		// data is replicated across all segments
 				EdtAny,				// data can be anywhere on the segments (required only)
 				EdtSingleton,		// data is on a single segment or the master

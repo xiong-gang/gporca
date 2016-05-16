@@ -33,6 +33,7 @@ add_library(gpopt SHARED
             src/base/CDistributionSpecRouted.cpp
             src/base/CDistributionSpecSingleton.cpp
             src/base/CDistributionSpecStrictSingleton.cpp
+            src/base/CDistributionSpecStrictHashed.cpp
             src/base/CDrvdProp.cpp
             src/base/CDrvdPropCtxt.cpp
             src/base/CDrvdPropCtxtPlan.cpp

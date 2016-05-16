@@ -684,7 +684,12 @@ CReqdPropPlan::OsPrint
 	os << "], req order: [" << (*m_peo);
 	os << "], req dist: [" << (*m_ped);
 	os << "], req rewind: [" << (*m_per);	
-	os	<<	"], req partition propagation: [" << (*m_pepp);
+
+	if (m_pepp)
+	{
+		os	<<	"], req partition propagation: [" << (*m_pepp);
+	}
+
 	os <<  "]";
 	
 	return os;
