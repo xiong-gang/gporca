@@ -60,8 +60,11 @@ CPhysicalSequenceProject::CPhysicalSequenceProject
 	GPOS_ASSERT(CDistributionSpec::EdtHashed == pds->Edt() ||
 			CDistributionSpec::EdtSingleton == pds->Edt());
 
-	// for SequenceProject without PARTITION BY keys, we generate
-	// Singleton and Replicate distribution requests
+	// When the SequenceProject does not have PARTITION BY keys, we generate two distribution
+	// request from its children:
+	// 1. Singleton distribution request
+	// 2. Replicate distribution request -- only when the Window operator is request by
+	// its parent a replicated distribution from its parent
 	SetDistrRequests(2);
 
 	CreateOrderSpec(pmp);
@@ -355,18 +358,20 @@ CPhysicalSequenceProject::PdsRequired
 		return GPOS_NEW(pmp) CDistributionSpecReplicated();
 	}
 
+	// if the window operator has a partition by clause, then always ask
+	// request hashed distribution on the partition column
 	if (CDistributionSpec::EdtHashed == m_pds->Edt())
 	{
 		m_pds->AddRef();
 		return m_pds;
 	}
 
-	if (0 == ulOptReq)
+	if (1 == ulOptReq && CDistributionSpec::EdtAny != pdsRequired->Edt())
 	{
-		return GPOS_NEW(pmp) CDistributionSpecSingleton(CDistributionSpecSingleton::EstMaster);
+		return GPOS_NEW(pmp) CDistributionSpecReplicated();
 	}
 
-	return GPOS_NEW(pmp) CDistributionSpecReplicated();
+	return GPOS_NEW(pmp) CDistributionSpecSingleton(CDistributionSpecSingleton::EstMaster);
 }
 
 
