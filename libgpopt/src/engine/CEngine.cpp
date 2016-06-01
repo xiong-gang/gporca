@@ -2159,6 +2159,13 @@ CEngine::FCheckEnfdProps
 {
 	GPOS_CHECK_ABORT;
 
+	{
+		CAutoTrace at(m_pmp);
+		at.Os() << "CEngine::FCheckEnfdProps (Group ID: " << pgexpr->Pgroup()->UlId() <<
+				" Expression ID: " <<  pgexpr->UlId() << ")"<< std::endl;
+		m_pmemo->OsPrint(at.Os());
+	}
+
 	// check if all children could be successfully optimized
 	if (!FChildrenOptimized(pdrgpoc))
 	{
@@ -2390,6 +2397,13 @@ CEngine::FCheckReqdProps
 	)
 {
 	GPOS_CHECK_ABORT;
+
+	{
+		CAutoTrace at(m_pmp);
+		at.Os() << "CEngine::FCheckReqdProps (Group ID: " << exprhdl.Pgexpr()->Pgroup()->UlId() <<
+				" Expression ID: " <<  exprhdl.Pgexpr()->UlId() << ")" << std::endl;
+		m_pmemo->OsPrint(at.Os());
+	}
 
 	// check if operator provides required columns
 	if (!prpp->FProvidesReqdCols(m_pmp, exprhdl, ulOptReq))
