@@ -37,7 +37,7 @@ const CHAR *rgszPartTblFileNames[] =
 	{
 	"../data/dxl/minidump/Select-Over-PartTbl.mdp",
 	"../data/dxl/minidump/PartTbl-DPE.mdp",
-	"../data/dxl/minidump/PartTbl-DPE-WindowFunction.mdp",
+	//"../data/dxl/minidump/PartTbl-DPE-WindowFunction.mdp",
 	"../data/dxl/minidump/PartTbl-DPE-GroupBy.mdp",
 	"../data/dxl/minidump/PartTbl-DPE-Limit.mdp",
 	"../data/dxl/minidump/DPE-SemiJoin.mdp",
@@ -49,17 +49,12 @@ const CHAR *rgszPartTblFileNames[] =
 	"../data/dxl/minidump/Part-Selection-NOT-IN.mdp",
 	"../data/dxl/minidump/Part-Selection-ConstArray-1.mdp",
 	"../data/dxl/minidump/Part-Selection-ConstArray-2.mdp",
-	"../data/dxl/minidump/PartTbl-WindowFunction.mdp",
+	//"../data/dxl/minidump/PartTbl-WindowFunction.mdp",
 	"../data/dxl/minidump/PartTbl-MultiWayJoin.mdp",
 	"../data/dxl/minidump/PartTbl-MultiWayJoinWithDPE.mdp",
 	"../data/dxl/minidump/PartTbl-MultiWayJoinWithDPE-2.mdp",
 	"../data/dxl/minidump/PartTbl-AsymmetricRangePredicate.mdp",
 	"../data/dxl/minidump/PartTbl-NEqPredicate.mdp",
-
-	// TODO: ; 02/14/2014: the plan in this test keeps changing between runs
-	// re-enable test after this issue is fixed
-	//		"../data/dxl/minidump/PartTbl-MultipleEqPredicates.mdp",
-
 	"../data/dxl/minidump/PartTbl-SQExists.mdp",
 	"../data/dxl/minidump/PartTbl-SQNotExists.mdp",
 	"../data/dxl/minidump/PartTbl-SQAny.mdp",

@@ -147,6 +147,13 @@ CPhysicalFilter::PdsRequired
 		return pdsRequired;
 	}
 
+	// Avoid having Gather on top of Broadcast through Filter
+	if (CDistributionSpec::EdtAny == pdsRequired->Edt())
+	{
+		pdsRequired->AddRef();
+		return pdsRequired;
+	}
+
 	return CPhysical::PdsUnary(pmp, exprhdl, pdsRequired, ulChildIndex, ulOptReq);
 }
 

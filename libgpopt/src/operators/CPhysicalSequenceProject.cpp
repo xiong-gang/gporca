@@ -19,6 +19,7 @@
 #include "gpos/base.h"
 
 #include "gpopt/base/COptCtxt.h"
+#include "gpopt/base/CDistributionSpecAny.h"
 #include "gpopt/base/CDistributionSpecHashed.h"
 #include "gpopt/base/CDistributionSpecReplicated.h"
 #include "gpopt/base/CDistributionSpecSingleton.h"
@@ -366,9 +367,17 @@ CPhysicalSequenceProject::PdsRequired
 		return m_pds;
 	}
 
-	if (1 == ulOptReq && CDistributionSpec::EdtAny != pdsRequired->Edt())
+	if (1 == ulOptReq)
 	{
-		return GPOS_NEW(pmp) CDistributionSpecReplicated();
+		if (CDistributionSpec::EdtAny == pdsRequired->Edt())
+		{
+			CDistributionSpecAny *anySpec = CDistributionSpecAny::PdsConvert(pdsRequired);
+			if (COperator::EopPhysicalMotionGather != anySpec->GetRequestedOperatorId()
+					&& COperator::EopPhysicalFilter != anySpec->GetRequestedOperatorId())
+			{
+				return GPOS_NEW(pmp) CDistributionSpecReplicated();
+			}
+		}
 	}
 
 	return GPOS_NEW(pmp) CDistributionSpecSingleton(CDistributionSpecSingleton::EstMaster);
