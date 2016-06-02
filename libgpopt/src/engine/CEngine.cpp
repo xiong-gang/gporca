@@ -2159,7 +2159,7 @@ CEngine::FCheckEnfdProps
 {
 	GPOS_CHECK_ABORT;
 
-	if (false)
+	if (GPOS_FTRACE(EopttracePrintMemoEnforcement))
 	{
 		CAutoTrace at(m_pmp);
 		at.Os() << "CEngine::FCheckEnfdProps (Group ID: " << pgexpr->Pgroup()->UlId() <<
@@ -2399,7 +2399,7 @@ CEngine::FCheckReqdProps
 {
 	GPOS_CHECK_ABORT;
 
-	if (false)
+	if (GPOS_FTRACE(EopttracePrintMemoEnforcement))
 	{
 		CAutoTrace at(m_pmp);
 		at.Os() << "CEngine::FCheckReqdProps (Group ID: " << exprhdl.Pgexpr()->Pgroup()->UlId() <<
