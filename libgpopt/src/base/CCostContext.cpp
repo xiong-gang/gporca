@@ -412,7 +412,7 @@ CCostContext::FBetterThan
 	const
 {
 	GPOS_ASSERT(NULL != pcc);
-	GPOS_ASSERT(*m_poc == *(pcc->Poc()));
+	//GPOS_ASSERT(*m_poc == *(pcc->Poc()));
 	GPOS_ASSERT(estCosted == m_estate);
 	GPOS_ASSERT(estCosted == pcc->Est());
 

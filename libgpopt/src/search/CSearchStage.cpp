@@ -46,8 +46,6 @@ CSearchStage::CSearchStage
 	GPOS_ASSERT(NULL != pxfs);
 	GPOS_ASSERT(0 < pxfs->CElements());
 
-	// include all implementation rules in any search strategy
-	m_pxfs->Union(CXformFactory::Pxff()->PxfsImplementation());
 }
 
 
@@ -135,9 +133,16 @@ CSearchStage::PdrgpssDefault
 {
 	CXformSet *pxfs = GPOS_NEW(pmp) CXformSet(pmp);
 	pxfs->Union(CXformFactory::Pxff()->PxfsExploration());
-	DrgPss *pdrgpss = GPOS_NEW(pmp) DrgPss(pmp);
+	pxfs->Union(CXformFactory::Pxff()->PxfsImplementation());
 
-	pdrgpss->Append(GPOS_NEW(pmp) CSearchStage(pxfs));
+	DrgPss *pdrgpss = GPOS_NEW(pmp) DrgPss(pmp);
+	// create stage 0 with 100 jobs, and will stop further optimization if find query plan with cost < 5.0.
+	CSearchStage *pStage0 = GPOS_NEW(pmp) CSearchStage(pxfs, 100, CCost(5.0));
+
+	pxfs->AddRef();
+	CSearchStage *pStage1 = GPOS_NEW(pmp) CSearchStage(pxfs);
+	pdrgpss->Append(pStage0);
+	pdrgpss->Append(pStage1);
 
 	return pdrgpss;
 }
