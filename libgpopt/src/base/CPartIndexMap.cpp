@@ -196,7 +196,7 @@ IOstream &
 CPartIndexMap::CPartTableInfo::OsPrint
 	(
 	IOstream &os
-	)
+	) const
 {
 	os << m_ulScanId;
 	return os;

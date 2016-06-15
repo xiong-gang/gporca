@@ -122,7 +122,13 @@ namespace gpopt
 			ULONG UlHash();	
 
 			// debug print
-			IOstream &OsPrint(IOstream &os, ULONG ulLenMax = ULONG_MAX) const;
+			IOstream &OsPrint(IOstream &os) const
+			{
+				return OsPrint(os, ULONG_MAX);
+			}
+
+			// debug print
+			virtual IOstream &OsPrint(IOstream &os, ULONG ulLenMax) const;
 
 			// extract all column ids
 			void ExtractColIds(IMemoryPool *pmp, DrgPul *pdrgpulColIds) const;

@@ -97,6 +97,19 @@ namespace gpopt
 						return m_cost;
 					}
 
+					// debug print
+					IOstream &OsPrint(IOstream &os) const
+					{
+						return os;
+					}
+
+					// override operator
+					// shorthand for printing
+					friend IOstream &operator << (IOstream &os, const SSamplePlan &opt)
+					{
+						return opt.OsPrint(os);
+					}
+
 			}; // struct SSamplePlan
 
 			// array og unsigned long long int

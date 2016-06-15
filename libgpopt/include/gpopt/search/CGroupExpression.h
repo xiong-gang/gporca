@@ -431,6 +431,9 @@ namespace gpopt
 			// print driver
 			IOstream &OsPrint(IOstream &os, const CHAR * = "");
 
+			// print driver - const
+			IOstream &OsPrint(IOstream &os) const;
+
 			// link for list in Group
 			SLink m_linkGroup;
 

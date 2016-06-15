@@ -619,6 +619,9 @@ namespace gpopt
 				CGroup *pgroupSnd
 				);
 
+			// print function - const
+			IOstream &OsPrint(IOstream &os) const;
+
 			// print function
 			IOstream &OsPrint(IOstream &os);
 

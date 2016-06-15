@@ -267,6 +267,16 @@ namespace gpopt
 			virtual
 			IOstream &OsPrint(IOstream &os, const CHAR *szPrefix) const;
 
+			virtual
+			IOstream &OsPrint(IOstream &os) const;
+
+			// override operator
+			// shorthand for printing
+			friend IOstream &operator << (IOstream &os, COptimizationContext &coctxt)
+			{
+				return coctxt.OsPrint(os);
+			}
+
 			// check equality of optimization contexts
 			static
 			BOOL FEqual

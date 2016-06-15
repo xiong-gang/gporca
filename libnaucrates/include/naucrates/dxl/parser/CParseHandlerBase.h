@@ -165,6 +165,20 @@ namespace gpdxl
 			
 			// process a parsing error
 			void error(const SAXParseException&);
+
+			// debug print
+			IOstream &OsPrint(IOstream &os) const
+			{
+				return os;
+			}
+
+			// override operator
+			// shorthand for printing
+			friend IOstream &operator << (IOstream &os, const CParseHandlerBase &cphbase)
+			{
+				return cphbase.OsPrint(os);
+			}
+
 	};
 }
 

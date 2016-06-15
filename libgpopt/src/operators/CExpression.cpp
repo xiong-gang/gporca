@@ -1303,6 +1303,10 @@ CExpression::OsPrint
 	return os;
 }
 
+IOstream& CExpression::OsPrint(IOstream &os) const {
+	return OsPrint(os, NULL, true);
+}
+
 
 //---------------------------------------------------------------------------
 //	@function:

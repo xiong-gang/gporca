@@ -110,7 +110,14 @@ namespace gpopt
 					}
 
 					// print function
-					IOstream &OsPrint(IOstream &os);
+					IOstream &OsPrint(IOstream &os) const;
+
+					// override operator
+					// shorthand for printing
+					friend IOstream &operator << (IOstream &os, CPartInfoEntry &cpie)
+					{
+						return cpie.OsPrint(os);
+					}
 
 					// copy part info entry into given memory pool
 					CPartInfoEntry *PpartinfoentryCopy(IMemoryPool *pmp);

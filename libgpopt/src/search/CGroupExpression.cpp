@@ -1186,5 +1186,22 @@ CGroupExpression::OsPrint
 	return os;
 }
 
+//---------------------------------------------------------------------------
+//	@function:
+//		CGroupExpression::OsPrint
+//
+//	@doc:
+//		Common print function
+//
+//---------------------------------------------------------------------------
+IOstream &
+CGroupExpression::OsPrint
+	(
+	IOstream &os
+	) const
+{
+	return const_cast<CGroupExpression*>(this)->OsPrint(os, NULL);
+}
+
 
 // EOF

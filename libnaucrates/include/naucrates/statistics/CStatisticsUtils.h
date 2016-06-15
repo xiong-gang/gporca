@@ -74,6 +74,20 @@ namespace gpnaucrates
 				{
 					m_pdatumMCV->Release();
 				}
+
+				// debug print
+				IOstream &OsPrint(IOstream &os) const
+				{
+					return os;
+				}
+
+				// override operator
+				// shorthand for printing
+				friend IOstream &operator << (IOstream &os, const SMcvPair &opt)
+				{
+					return opt.OsPrint(os);
+				}
+
 			};
 
 			// array of SMcvVPairs

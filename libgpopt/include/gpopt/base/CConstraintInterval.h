@@ -30,6 +30,7 @@ namespace gpopt
 	//
 	//	@doc:
 	//		Representation of an interval constraint
+	//		SQL expression example: C IN (1, 2, 3).
 	//
 	//---------------------------------------------------------------------------
 	class CConstraintInterval : public CConstraint

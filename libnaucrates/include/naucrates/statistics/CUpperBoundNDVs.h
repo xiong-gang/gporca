@@ -91,6 +91,13 @@ namespace gpnaucrates
 
                         // print function
                         IOstream &OsPrint(IOstream &os) const;
+
+                        // override operator
+						// shorthand for printing
+						friend IOstream &operator << (IOstream &os, const CUpperBoundNDVs &opt)
+						{
+							return opt.OsPrint(os);
+						}
         };
 }
 

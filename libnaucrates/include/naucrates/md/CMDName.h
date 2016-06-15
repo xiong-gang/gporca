@@ -52,6 +52,18 @@ namespace gpmd
 			{
 				return m_psc;
 			}
+
+			// debug print of entire map
+			IOstream &OsPrint(IOstream &os) const {
+				return os;
+			}
+
+			// override operator
+			// shorthand for printing
+			friend IOstream &operator << (IOstream &os, const CMDName &cmd)
+			{
+				return cmd.OsPrint(os);
+			}
 	};
 
 	// array of names

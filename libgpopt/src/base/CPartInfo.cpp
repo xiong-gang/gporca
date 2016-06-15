@@ -110,7 +110,7 @@ IOstream &
 CPartInfo::CPartInfoEntry::OsPrint
 	(
 	IOstream &os
-	)
+	) const
 {
 	os << m_ulScanId;
 

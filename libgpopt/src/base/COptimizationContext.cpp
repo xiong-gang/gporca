@@ -485,5 +485,23 @@ COptimizationContext::OsPrint
 	return os;
 }
 
+//---------------------------------------------------------------------------
+//	@function:
+//		COptimizationContext::OsPrint
+//
+//	@doc:
+//		Shorthand debug print
+//
+//---------------------------------------------------------------------------
+IOstream &
+COptimizationContext::OsPrint
+	(
+	IOstream &os
+	)
+	const
+{
+	return OsPrint(os, "");
+}
+
 // EOF
 

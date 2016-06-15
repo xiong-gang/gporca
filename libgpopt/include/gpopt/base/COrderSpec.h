@@ -117,6 +117,14 @@ namespace gpopt
 					// print
 					IOstream &OsPrint(IOstream &os) const;
 
+					// override operator
+					// shorthand for printing
+					friend IOstream &operator << (IOstream &os, const COrderExpression &opt)
+					{
+						return opt.OsPrint(os);
+					}
+
+
 					
 			}; // class COrderExpression
 

@@ -520,9 +520,6 @@ namespace gpopt
 		return m_ptnRoot->PrUnrank(pmp, m_prfn, pU, ullRank);
 	}
 
-
-#ifdef GPOS_DEBUG
-
 	//---------------------------------------------------------------------------
 	//	@function:
 	//		CTreeMap::UllCount
@@ -589,6 +586,25 @@ namespace gpopt
 		return os;
 	}
 	
+	//---------------------------------------------------------------------------
+	//	@function:
+	//		CTreeMap::CTreeNode::OsPrint
+	//
+	//	@doc:
+	//		Debug print of individual node, const
+	//
+	//---------------------------------------------------------------------------
+	template <class T, class R, class U,
+					ULONG (*pfnHash)(const T*),
+					BOOL (*pfnEq)(const T*, const T*)>
+	IOstream &
+	CTreeMap<T, R, U, pfnHash, pfnEq>::CTreeNode::OsPrint
+		(
+		IOstream &os
+		) const
+	{
+		return const_cast<CTreeMap<T, R, U, pfnHash, pfnEq>::CTreeNode*>(this)->OsPrint(os);
+	}
 
 	//---------------------------------------------------------------------------
 	//	@function:
@@ -620,9 +636,26 @@ namespace gpopt
 		return os;
 	}
 	
+	//---------------------------------------------------------------------------
+	//	@function:
+	//		CTreeMap::OsPrint
+	//
+	//	@doc:
+	//		Debug print of entire map
+	//
+	//---------------------------------------------------------------------------
+	template <class T, class R, class U,
+					ULONG (*pfnHash)(const T*),
+					BOOL (*pfnEq)(const T*, const T*)>
+	IOstream &
+	CTreeMap<T, R, U, pfnHash, pfnEq>::OsPrint
+		(
+		IOstream &os
+		) const
+	{
+		return const_cast<CTreeMap<T, R, U, pfnHash, pfnEq>*>(this)->OsPrint(os);
+	}
 
-#endif // GPOS_DEBUG
-	
 }
 
 #endif // !GPOPT_CTreeMap_INL

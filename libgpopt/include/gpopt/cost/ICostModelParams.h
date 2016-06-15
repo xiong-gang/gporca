@@ -112,6 +112,18 @@ namespace gpopt
 						return m_dUpperBound;
 					}
 
+					// debug print of entire map
+					IOstream &OsPrint(IOstream &os) const {
+						return os;
+					}
+
+					// override operator
+					// shorthand for printing
+					friend IOstream &operator << (IOstream &os, const SCostParam &cmp)
+					{
+						return cmp.OsPrint(os);
+					}
+
 			}; // struct SCostParam
 
 			// lookup param by id

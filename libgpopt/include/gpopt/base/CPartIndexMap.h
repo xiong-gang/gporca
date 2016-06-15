@@ -200,7 +200,7 @@ namespace gpopt
 					// add part constraints
 					void AddPartConstraints(IMemoryPool *pmp, PartCnstrMap *ppartcnstrmap);
 
-					IOstream &OsPrint(IOstream &os);
+					IOstream &OsPrint(IOstream &os) const;
 
 			}; // CPartTableInfo
 

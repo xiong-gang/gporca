@@ -273,11 +273,13 @@ namespace gpopt
 			IOstream &OsPrint
 						(
 						IOstream &os,
-						const CPrintPrefix * = NULL,
-						BOOL fLast = true
+						const CPrintPrefix *,
+						BOOL fLast
 						)
 						const;
 			
+			IOstream &OsPrint(IOstream &os) const;
+
 			// match with group expression
 			BOOL FMatchPattern(CGroupExpression *pgexpr) const;
 			

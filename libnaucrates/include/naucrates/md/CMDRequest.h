@@ -74,6 +74,19 @@ namespace gpmd
 					m_sysid(sysid),
 					m_eti(eti)
 				{}
+
+				// debug print
+				IOstream &OsPrint(IOstream &os) const
+				{
+					return os;
+				}
+
+				// override operator
+				// shorthand for printing
+				friend IOstream &operator << (IOstream &os, const SMDTypeRequest &smdtr)
+				{
+					return smdtr.OsPrint(os);
+				}
 	
 			};
 			

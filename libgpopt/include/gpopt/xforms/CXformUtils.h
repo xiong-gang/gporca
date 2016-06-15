@@ -73,6 +73,18 @@ namespace gpopt
 			CRefCount::SafeRelease(m_pdrgpexprIndex);
 			CRefCount::SafeRelease(m_pdrgpexprResidual);
 		}
+
+		// debug print of entire map
+		IOstream &OsPrint(IOstream &os) const {
+			return os;
+		}
+
+		// override operator
+		// shorthand for printing
+		friend IOstream &operator << (IOstream &os, const SPartDynamicIndexGetInfo &dpi)
+		{
+			return dpi.OsPrint(os);
+		}
 	};
 
 	// arrays over partial dynamic index get candidates

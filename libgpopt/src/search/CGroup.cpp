@@ -2107,7 +2107,6 @@ CGroup::OsPrint
 	{
 		(void) pgexpr->OsPrint(os, szPrefix);
 		pgexpr = m_listGExprs.PtNext(pgexpr);
-
 		GPOS_CHECK_ABORT;
 	}
 
@@ -2115,6 +2114,24 @@ CGroup::OsPrint
 	(void) OsPrintGrpOptCtxts(os, szPrefix);
 
 	return os;
+}
+
+//---------------------------------------------------------------------------
+//	@function:
+//		CGroup::OsPrint
+//
+//	@doc:
+//		const casted print function;
+//		printing is not thread-safe
+//
+//---------------------------------------------------------------------------
+IOstream &
+CGroup::OsPrint
+	(
+	IOstream &os
+	) const
+{
+	return const_cast<CGroup*>(this)->OsPrint(os);
 }
 
 

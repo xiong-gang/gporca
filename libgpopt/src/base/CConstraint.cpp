@@ -123,6 +123,9 @@ CConstraint::PcnstrFromScalarArrayCmp
 			CConstraintInterval *pci =  CConstraintInterval::PciIntervalFromColConstCmp(pmp, pcr, ecmpt, popScConst);
 			pdrgpcnstr->Append(pci);
 		}
+#ifdef GPOS_DEBUG
+		pdrgpcnstr->DbgPrint();
+#endif
 
 		if (earrccmpt == CScalarArrayCmp::EarrcmpAny)
 		{

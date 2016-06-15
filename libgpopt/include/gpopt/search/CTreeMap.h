@@ -230,12 +230,20 @@ namespace gpopt
 						ULLONG ullRank
 						);
 
-#ifdef GPOS_DEBUG
 
 					// debug print
 					IOstream &OsPrint(IOstream &);
-					
-#endif // GPOS_DEBUG
+
+					// debug print
+					IOstream &OsPrint(IOstream &) const;
+
+					// override operator
+					// shorthand for printing
+					friend IOstream &operator << (IOstream &os, const CTreeNode &trnd)
+					{
+						return trnd.OsPrint(os);
+					}
+
 
 			};
 			
@@ -310,15 +318,22 @@ namespace gpopt
 				return m_ulCountLinks;
 			}
 
-#ifdef GPOS_DEBUG
-
 			// retrieve count for individual element
 			ULLONG UllCount(const T* pt);
 			
 			// debug print of entire map
 			IOstream &OsPrint(IOstream &os);
 
-#endif // GPOS_DEBUG
+			// debug print of entire map
+			IOstream &OsPrint(IOstream &os) const;
+
+			// override operator
+			// shorthand for printing
+			friend IOstream &operator << (IOstream &os, const CTreeMap &trmp)
+			{
+				return trmp.OsPrint(os);
+			}
+
 
 	}; // class CTreeMap
 	

@@ -77,6 +77,18 @@ namespace gpdxl
 					GPOS_DELETE(m_pstrValue);
 				}
 				
+				// debug print
+				IOstream &OsPrint(IOstream &os) const
+				{
+					return os;
+				}
+
+				// override operator
+				// shorthand for printing
+				friend IOstream &operator << (IOstream &os, const CDXLCtasOption &opt)
+				{
+					return opt.OsPrint(os);
+				}
 			};
 			
 			typedef CDynamicPtrArray<CDXLCtasOption, CleanupDelete> DrgPctasOpt;

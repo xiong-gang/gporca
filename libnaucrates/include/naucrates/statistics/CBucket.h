@@ -216,6 +216,12 @@ namespace gpnaucrates
 			// generate a random data point within bucket boundaries
 			CDouble DSample(ULONG *pulSeed) const;
 
+			// override operator, shorthand for printing
+			friend IOstream &operator << (IOstream &os, CBucket &bucket)
+			{
+				return bucket.OsPrint(os);
+			}
+
 			// compare lower bucket boundaries
 			static
 			INT ICompareLowerBounds(const CBucket *pbucket1, const CBucket *pbucket2);

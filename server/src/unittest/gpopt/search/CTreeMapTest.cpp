@@ -103,6 +103,23 @@ CTreeMapTest::CNode::OsPrint
 	return os;
 }
 
+//---------------------------------------------------------------------------
+//	@function:
+//		CTreeMapTest::CNode::OsPrint
+//
+//	@doc:
+//		Debug print function
+//
+//---------------------------------------------------------------------------
+IOstream &
+CTreeMapTest::CNode::OsPrint
+	(
+	IOstream &os
+	)
+	const
+{
+	return OsPrint(os, 0);
+}
 
 //---------------------------------------------------------------------------
 //	@function:

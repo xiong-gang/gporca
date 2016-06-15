@@ -67,6 +67,19 @@ namespace gpmd
 			
 			// hash function
 			ULONG UlHash() const;
+
+			// debug print
+			IOstream &OsPrint(IOstream &os) const
+			{
+				return os;
+			}
+
+			// override operator
+			// shorthand for printing
+			friend IOstream &operator << (IOstream &os, const CSystemId &opt)
+			{
+				return opt.OsPrint(os);
+			}
 	};
 
 	// dynamic arrays over md system id elements
