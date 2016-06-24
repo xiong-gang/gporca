@@ -597,13 +597,9 @@ CRewindabilitySpec *
 CPhysicalUnionAll::PrsRequired
 	(
 	IMemoryPool *pmp,
-	CExpressionHandle &,
-	CRewindabilitySpec *,
-	ULONG
-#ifdef GPOS_DEBUG
-	ulChildIndex
-#endif // GPOS_DEBUG
-	,
+	CExpressionHandle &exprhdl,
+	CRewindabilitySpec *prsRequired,
+	ULONG ulChildIndex,
 	DrgPdp *, // pdrgpdpCtxt
 	ULONG // ulOptReq
 	)
@@ -611,8 +607,7 @@ CPhysicalUnionAll::PrsRequired
 {
 	GPOS_ASSERT(m_pdrgpdrgpcrInput->UlLength() > ulChildIndex);
 
-	// Force all children (for every ulChildIndex) to be rewindable, effectively forcing Materialize
-	return GPOS_NEW(pmp) CRewindabilitySpec(CRewindabilitySpec::ErtGeneral /*ert*/);
+	return PrsPassThru(pmp, exprhdl, prsRequired, ulChildIndex);
 }
 
 //---------------------------------------------------------------------------

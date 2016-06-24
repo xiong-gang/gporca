@@ -9,6 +9,8 @@
 //		Implementation of GPDB cost model
 //---------------------------------------------------------------------------
 
+#include <gpopt/operators/CPhysicalMotion.h>
+#include <gpopt/operators/CPhysicalUnionAll.h>
 #include "gpopt/base/COrderSpec.h"
 #include "gpopt/base/CWindowFrame.h"
 #include "gpopt/metadata/CTableDescriptor.h"
@@ -1099,6 +1101,14 @@ CCostModelGPDB::CostMotion
 	// the function.
 
 	CCost costLocal(0);
+	gpopt::CPhysicalMotion* pop = dynamic_cast<gpopt::CPhysicalMotion*>(exprhdl.Pop());
+	CDistributionSpecSingleton::EDistributionType edt = pop->Pds()->Edt();
+	if (CDistributionSpec::EdtStrictHashed == edt)
+	{
+		CCost yolo(0.0);
+		return yolo;
+	}
+
 	if (COperator::EopPhysicalMotionBroadcast == eopid)
 	{
 		// broadcast cost is amplified by the number of segments
