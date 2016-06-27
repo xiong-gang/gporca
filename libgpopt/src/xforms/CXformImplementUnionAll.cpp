@@ -92,6 +92,10 @@ CXformImplementUnionAll::Transform
 	pdrgpcrOutput->AddRef();
 	pdrgpdrgpcrInput->AddRef();
 
+	if (GPOS_FTRACE(EopttraceEnableParallelAppend))
+	{
+		GPOS_RAISE(gpopt::ExmaGPOPT, gpopt::ExmiUnsupportedOp, GPOS_WSZ_LIT("Something less LOLly"));
+	}
 	// assemble physical operator
 	CExpression *pexprUnionAll =
 		GPOS_NEW(pmp) CExpression
