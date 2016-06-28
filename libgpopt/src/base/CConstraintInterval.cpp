@@ -185,11 +185,22 @@ CConstraintInterval::PciIntervalFromScalarExpr
 				{
 					pci =  CConstraintInterval::PciUnbounded(pmp, pcr, true/*fIncludesNull*/);
 				}
-				pci =  GPOS_NEW(pmp) CConstraintInterval(pmp, pcr, GPOS_NEW(pmp) DrgPrng(pmp), false /*fIncludesNull*/);
+				else
+				{
+					pci =  GPOS_NEW(pmp) CConstraintInterval(pmp, pcr, GPOS_NEW(pmp) DrgPrng(pmp), false /*fIncludesNull*/);
+				}
 			}
 			break;
 		case COperator::EopScalarArrayCmp:
-			pci = CConstraintInterval::PcnstrIntervalFromScalarArrayCmp(pmp, pexpr, pcr);
+			// remove array derive to constraint interval
+			if(GPOS_FTRACE(EopttraceEnableArrayDerive))
+			{
+				pci = CConstraintInterval::PcnstrIntervalFromScalarArrayCmp(pmp, pexpr, pcr);
+			}
+			else
+			{
+				pci = NULL;
+			}
 			break;
 		default:
 			pci = NULL;
@@ -631,15 +642,19 @@ CConstraintInterval::PexprConstructScalar
 		return CUtils::PexprScalarConstBool(pmp, false /*fval*/, false /*fNull*/);
 	}
 
-	// this is a candidate for conversion to an array constraint
-	CExpression *pexpr = NULL;
-	if (1 < m_pdrgprng->UlLength())
+    // remove array derive to expression
+	if(GPOS_FTRACE(EopttraceEnableArrayDerive))
 	{
-		pexpr = PexprConstructArrayScalar(pmp);
-	}
-	if (pexpr != NULL)
-	{
-		return pexpr;
+		// this is a candidate for conversion to an array constraint
+		CExpression *pexpr = NULL;
+		if (1 < m_pdrgprng->UlLength())
+		{
+			pexpr = PexprConstructArrayScalar(pmp);
+		}
+		if (pexpr != NULL)
+		{
+			return pexpr;
+		}
 	}
 
 	// otherwise, we generate a disjunction of ranges
