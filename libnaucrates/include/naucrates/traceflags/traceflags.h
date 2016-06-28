@@ -160,6 +160,8 @@ namespace gpos
 		// prune unused computed columns
 		EopttraceDisablePruneUnusedComputedColumns = 103024,
 
+		// does not create constraint intervals from array expressions in preprocessing
+		EopttraceDisableArrayDerive = 103026,
 		///////////////////////////////////////////////////////
 		///////////////////// statistics flags ////////////////
 		//////////////////////////////////////////////////////
