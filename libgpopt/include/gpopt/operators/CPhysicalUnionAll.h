@@ -97,6 +97,9 @@ namespace gpopt
 			// private copy ctor
 			CPhysicalUnionAll(const CPhysicalUnionAll &);
 
+		protected:
+			CDistributionSpec* PdrgpdsChildHashedDistributions(ULONG ulChildIndex) const;
+
 		public:
 
 			// ctor

@@ -200,6 +200,7 @@ add_library(gpopt SHARED
             src/operators/CPhysicalMotionRandom.cpp
             src/operators/CPhysicalMotionRoutedDistribute.cpp
             src/operators/CPhysicalNLJoin.cpp
+            src/operators/CPhysicalParallelUnionAll.cpp
             src/operators/CPhysicalPartitionSelector.cpp
             src/operators/CPhysicalPartitionSelectorDML.cpp
             src/operators/CPhysicalRowTrigger.cpp

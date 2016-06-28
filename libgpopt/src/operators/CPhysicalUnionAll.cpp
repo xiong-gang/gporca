@@ -136,6 +136,12 @@ CPhysicalUnionAll::BuildHashedDistributions
 	}
 }
 
+CDistributionSpec*
+CPhysicalUnionAll::PdrgpdsChildHashedDistributions(ULONG ulChildIndex) const
+{
+	return (*m_pdrgpds)[ulChildIndex];
+}
+
 
 //---------------------------------------------------------------------------
 //	@function:

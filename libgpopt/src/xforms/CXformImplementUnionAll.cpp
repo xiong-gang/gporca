@@ -16,6 +16,7 @@
 #include "gpopt/xforms/CXformUtils.h"
 
 #include "gpopt/operators/ops.h"
+#include "gpopt/operators/CPhysicalParallelUnionAll.h"
 
 using namespace gpopt;
 
@@ -92,24 +93,40 @@ CXformImplementUnionAll::Transform
 	pdrgpcrOutput->AddRef();
 	pdrgpdrgpcrInput->AddRef();
 
+	// assemble physical operator
+
+	CExpression *pexprUnionAll = NULL;
 	if (GPOS_FTRACE(EopttraceEnableParallelAppend))
 	{
-		GPOS_RAISE(gpopt::ExmaGPOPT, gpopt::ExmiUnsupportedOp, GPOS_WSZ_LIT("Something less LOLly"));
-	}
-	// assemble physical operator
-	CExpression *pexprUnionAll =
-		GPOS_NEW(pmp) CExpression
+		pexprUnionAll = GPOS_NEW(pmp) CExpression
+				(
+				pmp,
+				GPOS_NEW(pmp) CPhysicalParallelUnionAll
 					(
 					pmp,
-					GPOS_NEW(pmp) CPhysicalUnionAll
+					pdrgpcrOutput,
+					pdrgpdrgpcrInput,
+					popUnionAll->UlScanIdPartialIndex()
+					),
+				pdrgpexpr
+				);
+	}
+	else
+	{
+		pexprUnionAll =
+			GPOS_NEW(pmp) CExpression
 						(
 						pmp,
-						pdrgpcrOutput,
-						pdrgpdrgpcrInput,
-						popUnionAll->UlScanIdPartialIndex()
-						),
-					pdrgpexpr
-					);
+						GPOS_NEW(pmp) CPhysicalUnionAll
+							(
+							pmp,
+							pdrgpcrOutput,
+							pdrgpdrgpcrInput,
+							popUnionAll->UlScanIdPartialIndex()
+							),
+						pdrgpexpr
+						);
+	}
 
 	// add alternative to results
 	pxfres->Add(pexprUnionAll);
