@@ -20,6 +20,10 @@
 
 #include "naucrates/md/IMDType.h"
 
+#include "gpos/error/CAutoTrace.h"
+#include "gpos/memory/CAutoMemoryPool.h"
+
+
 namespace gpnaucrates
 {
 	// fwd declarations
@@ -167,8 +171,11 @@ namespace gpopt
 			// does this range overlap only the left end of the given range
 			BOOL FOverlapsLeft(CRange *prange);
 
-			// does this range overlap only the right end of the given range
+			// does this range overlap only the left end of the given range
 			BOOL FOverlapsRight(CRange *prange);
+
+			// does the right element equal the left element of the given range
+			BOOL FRightEqualsLeft(CRange *prange);
 
 			// does this range start before the given range starts
 			BOOL FStartsBefore(CRange *prange);
@@ -209,6 +216,12 @@ namespace gpopt
 
 			// print
 			IOstream &OsPrint(IOstream &os) const;
+
+			void DbgPrint() const {
+				CAutoMemoryPool autoPool;
+				CAutoTrace at(autoPool.Pmp());
+				this->OsPrint(at.Os());
+			}
 
 	}; // class CRange
 

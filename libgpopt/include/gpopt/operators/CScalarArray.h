@@ -11,6 +11,8 @@
 #ifndef GPOPT_CScalarArray_H
 #define GPOPT_CScalarArray_H
 
+#include "gpos/error/CAutoTrace.h"
+
 #include "gpos/base.h"
 #include "naucrates/md/IMDId.h"
 
@@ -119,6 +121,15 @@ namespace gpopt
 			// type of expression's result
 			virtual 
 			IMDId *PmdidType() const;
+
+			void DbgPrint() const {
+				CAutoTrace at(m_pmp);
+				at.Os() << "CScalarArray: { eleMDId: ";
+				m_pmdidElem->OsPrint(at.Os());
+				at.Os() << " ,arrayMDId: ";
+				m_pmdidArray->OsPrint(at.Os());
+				at.Os() << " , isMultiDim: " << m_fMultiDimensional << " }";
+			}
 
 
 	}; // class CScalarArray
