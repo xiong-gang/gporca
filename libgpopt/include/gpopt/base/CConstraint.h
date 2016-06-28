@@ -14,6 +14,8 @@
 #include "gpos/base.h"
 #include "gpos/types.h"
 #include "gpos/common/CRefCount.h"
+#include "gpos/common/CDynamicPtrArray.h"
+#include "gpos/error/CAutoTrace.h"
 
 #include "gpopt/base/CRange.h"
 
@@ -32,9 +34,6 @@ namespace gpopt
 	// hash map mapping CColRef -> DrgPcnstr
 	typedef CHashMap<CColRef, DrgPcnstr, gpos::UlHash<CColRef>, gpos::FEqual<CColRef>,
 					CleanupNULL<CColRef>, CleanupRelease<DrgPcnstr> > HMColConstr;
-
-	// range array
-	typedef CDynamicPtrArray<CRange, CleanupRelease> DrgPrng;
 
 	// mapping CConstraint -> BOOL to cache previous containment queries,
 	// we use pointer equality here for fast map lookup -- since we do shallow comparison, we do not take ownership
@@ -272,11 +271,33 @@ namespace gpopt
 			static
 			DrgPcrs *PdrgpcrsMergeFromBoolOp(IMemoryPool *pmp, CExpression *pexpr, DrgPcrs *pdrgpcrsFst, DrgPcrs *pdrgpcrsSnd);
 
+			// Easy handle for debug information.
+			virtual
+			void DbgPrint(const char* msg) const {
+				CAutoTrace at(m_pmp);
+				// an optional debug message.
+				if (msg) {
+					at.Os() << msg << "\n";
+				}
+				this->OsPrint(at.Os());
+			}
+
+			virtual
+			void DbgPrint() const {
+				this->DbgPrint(nullptr);
+			}
+
 	}; // class CConstraint
 
+	// shorthand for printing, pointer.
+	inline
+	IOstream &operator << (IOstream &os, const CConstraint *cnstr)
+	{
+		return cnstr->OsPrint(os);
+	}
 	// shorthand for printing
 	inline
-	IOstream &operator << (IOstream &os, CConstraint &cnstr)
+	IOstream &operator << (IOstream &os, const CConstraint &cnstr)
 	{
 		return cnstr.OsPrint(os);
 	}
