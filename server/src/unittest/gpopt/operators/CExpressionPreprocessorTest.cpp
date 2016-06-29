@@ -14,6 +14,7 @@
 
 #include "gpos/io/COstreamString.h"
 #include "gpos/string/CWStringDynamic.h"
+#include "gpos/task/CAutoTraceFlag.h"
 
 #include "gpopt/base/CUtils.h"
 #include "gpopt/eval/CConstExprEvaluatorDefault.h"
@@ -1634,6 +1635,7 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessOrPrefilters()
 {
 	CAutoMemoryPool amp;
 	IMemoryPool *pmp = amp.Pmp();
+	CAutoTraceFlag atf(EopttraceEnableArrayDerive, true /*fVal*/);
 
 	// reset metadata cache
 	CMDCache::Reset();

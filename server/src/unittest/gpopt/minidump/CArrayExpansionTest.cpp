@@ -32,7 +32,6 @@ CArrayExpansionTest::EresUnittest()
 			"../data/dxl/minidump/CArrayExpansionTest/JoinWithInListNoExpand.mdp",
 			"../data/dxl/minidump/CArrayExpansionTest/JoinWithInListExpand.mdp"
 	};
-	CAutoTraceFlag atf(EopttraceDisableArrayDerive, true /*fVal*/);
 
 	return CTestUtils::EresUnittest_RunTestsWithoutAdditionalTraceFlags
 				(

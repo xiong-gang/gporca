@@ -135,7 +135,6 @@ CPartTblTest::EresUnittest()
 GPOS_RESULT
 CPartTblTest::EresUnittest_RunTests()
 {
-	CAutoTraceFlag atf(EopttraceDisableArrayDerive, true /*fVal*/);
 	return CTestUtils::EresUnittest_RunTests
 						(
 						rgszPartTblFileNames,

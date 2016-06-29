@@ -126,7 +126,6 @@ CIndexTest::EresUnittest()
 GPOS_RESULT
 CIndexTest::EresUnittest_RunTests()
 {
-	CAutoTraceFlag atf(EopttraceDisableArrayDerive, true /*fVal*/);
 	return CTestUtils::EresUnittest_RunTests
 						(
 						rgszIndexFileNames,

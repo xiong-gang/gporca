@@ -193,13 +193,13 @@ CConstraintInterval::PciIntervalFromScalarExpr
 			break;
 		case COperator::EopScalarArrayCmp:
 			// remove array derive to constraint interval
-			if(GPOS_FTRACE(EopttraceDisableArrayDerive))
+			if(GPOS_FTRACE(EopttraceEnableArrayDerive))
 			{
-				pci = NULL;
+				pci = CConstraintInterval::PcnstrIntervalFromScalarArrayCmp(pmp, pexpr, pcr);
 			}
 			else
 			{
-				pci = CConstraintInterval::PcnstrIntervalFromScalarArrayCmp(pmp, pexpr, pcr);
+				pci = NULL;
 			}
 			break;
 		default:
@@ -643,7 +643,7 @@ CConstraintInterval::PexprConstructScalar
 	}
 
     // remove array derive to expression
-	if(!GPOS_FTRACE(EopttraceDisableArrayDerive))
+	if(GPOS_FTRACE(EopttraceEnableArrayDerive))
 	{
 		// this is a candidate for conversion to an array constraint
 		CExpression *pexpr = NULL;
