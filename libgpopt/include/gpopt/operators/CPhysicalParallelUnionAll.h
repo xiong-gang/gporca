@@ -13,11 +13,8 @@ namespace gpopt
 {
 	class CPhysicalParallelUnionAll : public CPhysicalUnionAll
 	{
-		class CDistributionSpecStrictHashed;
-
-		private:
-			// compute required hashed distribution of the n-th child
-			CDistributionSpecStrictHashed *PdsstricthashedPassThru(IMemoryPool *pmp, CDistributionSpecStrictHashed *pdsstricthashedRequired, ULONG ulChildIndex) const;
+		protected:
+			virtual CDistributionSpecHashed* BuildHashedDistribution(IMemoryPool* pmp, DrgPexpr *pdrgpexpr);
 
 		public:
 			CPhysicalParallelUnionAll
@@ -39,6 +36,8 @@ namespace gpopt
 				ULONG ulOptReq
 				)
 				const;
+
+			const CHAR* SzId() const;
 	};
 }
 

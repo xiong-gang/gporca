@@ -7,6 +7,7 @@
 #include "gpopt/operators/CPhysicalParallelUnionAll.h"
 #include "gpopt/exception.h"
 #include "gpopt/base/CDistributionSpecHashed.h"
+#include "gpopt/base/CDistributionSpecStrictHashed.h"
 #include "gpopt/base/CUtils.h"
 
 using namespace gpopt;
@@ -29,6 +30,9 @@ ULONG ulScanIdPartialIndex
 	// (1) (StrictHashed, StrictHashed, ...): used to pass hashed distribution (requested from above)
 	//     to child operators and match request Exactly
 	SetDistrRequests(1 /*ulDistrReq*/);
+	m_pdrgpds->Release();
+	m_pdrgpds = nullptr;
+	BuildHashedDistributions(pmp);
 }
 
 CDistributionSpec * CPhysicalParallelUnionAll::PdsRequired
@@ -55,4 +59,14 @@ const
 	CDistributionSpec* yolo = PdrgpdsChildHashedDistributions(ulChildIndex);
 	yolo->AddRef();
 	return yolo;
+}
+
+const CHAR* CPhysicalParallelUnionAll::SzId() const
+{
+	return "CPhysicalParallelUnionAll";
+}
+
+CDistributionSpecHashed* CPhysicalParallelUnionAll::BuildHashedDistribution(IMemoryPool* pmp, DrgPexpr *pdrgpexpr)
+{
+	return GPOS_NEW(pmp) CDistributionSpecStrictHashed(pdrgpexpr, true /*fNullsColocated*/);
 }

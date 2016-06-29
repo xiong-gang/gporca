@@ -405,7 +405,8 @@ add_library(gpopt SHARED
             src/xforms/CXformUnnestTVF.cpp
             src/xforms/CXformUpdate2DML.cpp
             src/xforms/CXformUtils.cpp
-            )
+            src/base/CDistributionSpecStrictHashed.cpp
+)
 
 target_link_libraries(gpopt
                       gpdbcost

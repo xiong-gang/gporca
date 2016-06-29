@@ -158,7 +158,6 @@
 #include "gpopt/operators/CPhysicalConstTableGet.h"
 #include "gpopt/operators/CPhysicalTVF.h"
 #include "gpopt/operators/CPhysicalUnionAll.h"
-#include "gpopt/operators/CPhysicalParallelUnionAll.h"
 #include "gpopt/operators/CPhysicalPartitionSelector.h"
 #include "gpopt/operators/CPhysicalPartitionSelectorDML.h"
 #include "gpopt/operators/CPhysicalCTEProducer.h"

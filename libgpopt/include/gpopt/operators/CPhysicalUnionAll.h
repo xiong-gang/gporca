@@ -41,9 +41,6 @@ namespace gpopt
 			// set representation of input columns
 			DrgPcrs *m_pdrgpcrsInput;
 
-			// array of child hashed distributions -- used locally for distribution derivation
-			DrgPds *m_pdrgpds;
-
 			// if this union is needed for partial indexes then store the scan
 			// id, otherwise this will be ULONG_MAX
 			ULONG m_ulScanIdPartialIndex;
@@ -62,9 +59,6 @@ namespace gpopt
 
 			// derive output distribution based on child distribution
 			CDistributionSpec *PdsDeriveFromChildren(IMemoryPool *pmp, CExpressionHandle &exprhdl) const;
-
-			// build hashed distributions used in property derivation
-			void BuildHashedDistributions(IMemoryPool *pmp);
 
 			// helper to do value equality check of arrays of ULONG pointers
 			static
@@ -99,6 +93,13 @@ namespace gpopt
 
 		protected:
 			CDistributionSpec* PdrgpdsChildHashedDistributions(ULONG ulChildIndex) const;
+			virtual CDistributionSpecHashed* BuildHashedDistribution(IMemoryPool* pmp, DrgPexpr *pdrgpexpr);
+
+			// array of child hashed distributions -- used locally for distribution derivation
+			DrgPds *m_pdrgpds;
+
+			// build hashed distributions used in property derivation
+			void BuildHashedDistributions(IMemoryPool *pmp);
 
 		public:
 

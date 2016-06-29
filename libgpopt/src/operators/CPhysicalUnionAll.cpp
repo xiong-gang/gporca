@@ -52,8 +52,8 @@ CPhysicalUnionAll::CPhysicalUnionAll
 	m_pdrgpcrOutput(pdrgpcrOutput),
 	m_pdrgpdrgpcrInput(pdrgpdrgpcrInput),
 	m_pdrgpcrsInput(NULL),
-	m_pdrgpds(NULL),
-	m_ulScanIdPartialIndex(ulScanIdPartialIndex)
+	m_ulScanIdPartialIndex(ulScanIdPartialIndex),
+	m_pdrgpds(NULL)
 {
 	GPOS_ASSERT(NULL != pdrgpcrOutput);
 	GPOS_ASSERT(NULL != pdrgpdrgpcrInput);
@@ -131,9 +131,14 @@ CPhysicalUnionAll::BuildHashedDistributions
 		}
 
 		// create a hashed distribution on input columns of the current child
-		CDistributionSpecHashed *pdshashed = GPOS_NEW(pmp) CDistributionSpecHashed(pdrgpexpr, true /*fNullsColocated*/);
+		CDistributionSpecHashed *pdshashed = BuildHashedDistribution(pmp, pdrgpexpr);
 		m_pdrgpds->Append(pdshashed);
 	}
+}
+
+CDistributionSpecHashed* CPhysicalUnionAll::BuildHashedDistribution(IMemoryPool* pmp, DrgPexpr *pdrgpexpr)
+{
+	return GPOS_NEW(pmp) CDistributionSpecHashed(pdrgpexpr, true /*fNullsColocated*/);
 }
 
 CDistributionSpec*
