@@ -531,6 +531,12 @@ CExpression::PdpDerive
 	GPOS_CHECK_STACK_SIZE;
 	GPOS_CHECK_ABORT;
 
+	// DynamicTableScans do not support array predicates, they must be expanded
+	if (COperator::EopLogicalDynamicGet == this->Pop()->Eopid())
+	{
+		GPOS_UNSET_TRACE(EopttraceEnableArrayDerive);
+	}
+
 	const CDrvdProp::EPropType ept = Ept();
 #ifdef GPOS_DEBUG
 	AssertValidPropDerivation(ept);
@@ -550,6 +556,13 @@ CExpression::PdpDerive
 		CDrvdProp *pdp = exprhdl.Pdp();
 		pdp->AddRef();
 		SetPdp(pdp, ept);
+	}
+
+	// A join can reset the state if the ArrayDerive, that is, contained DynamicTable
+	// scans under the join will set the flag again
+	if (COperator::EopLogicalNAryJoin == this->Pop()->Eopid())
+	{
+		GPOS_SET_TRACE(EopttraceEnableArrayDerive);
 	}
 
 	return Pdp(ept);
