@@ -223,6 +223,8 @@ namespace gpopt
 			virtual
 			CExpression *PexprScalar(IMemoryPool *pmp);
 
+			CExpression *PexprConstructDisjunctionScalar(IMemoryPool *pmp) const;
+
 			// return constraint on a given column
 			virtual
 			CConstraint *Pcnstr(IMemoryPool *pmp, const CColRef *pcr);

@@ -1635,7 +1635,6 @@ CExpressionPreprocessorTest::EresUnittest_PreProcessOrPrefilters()
 {
 	CAutoMemoryPool amp;
 	IMemoryPool *pmp = amp.Pmp();
-	CAutoTraceFlag atf(EopttraceEnableArrayDerive, true /*fVal*/);
 
 	// reset metadata cache
 	CMDCache::Reset();

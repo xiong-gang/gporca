@@ -192,15 +192,7 @@ CConstraintInterval::PciIntervalFromScalarExpr
 			}
 			break;
 		case COperator::EopScalarArrayCmp:
-			// remove array derive to constraint interval
-			if(GPOS_FTRACE(EopttraceEnableArrayDerive))
-			{
-				pci = CConstraintInterval::PcnstrIntervalFromScalarArrayCmp(pmp, pexpr, pcr);
-			}
-			else
-			{
-				pci = NULL;
-			}
+			pci = CConstraintInterval::PcnstrIntervalFromScalarArrayCmp(pmp, pexpr, pcr);
 			break;
 		default:
 			pci = NULL;
@@ -642,21 +634,33 @@ CConstraintInterval::PexprConstructScalar
 		return CUtils::PexprScalarConstBool(pmp, false /*fval*/, false /*fNull*/);
 	}
 
-    // remove array derive to expression
-	if(GPOS_FTRACE(EopttraceEnableArrayDerive))
-	{
-		// this is a candidate for conversion to an array constraint
-		CExpression *pexpr = NULL;
-		if (1 < m_pdrgprng->UlLength())
-		{
-			pexpr = PexprConstructArrayScalar(pmp);
-		}
-		if (pexpr != NULL)
-		{
-			return pexpr;
-		}
-	}
+	CExpression *pexpr = PexprConstructArrayScalar(pmp);
 
+	if (pexpr != NULL)
+	{
+		return pexpr;
+	}
+	else
+	{
+		return PexprConstructDisjunctionScalar(pmp);
+	}
+}
+
+//---------------------------------------------------------------------------
+//	@function:
+//		CConstraintInterval::PexprConstructDisjunctionScalar
+//
+//	@doc:
+//		Construct scalar disjunction (or) expression
+//
+//---------------------------------------------------------------------------
+CExpression *
+CConstraintInterval::PexprConstructDisjunctionScalar
+	(
+	IMemoryPool *pmp
+	)
+	const
+{
 	// otherwise, we generate a disjunction of ranges
 	DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
 
@@ -832,7 +836,10 @@ CExpression *
 CConstraintInterval::PexprConstructArrayScalar(IMemoryPool *pmp) const
 {
 	// This must have many members to be an array in
-	GPOS_ASSERT(1 < m_pdrgprng->UlLength());
+	if (1 < m_pdrgprng->UlLength())
+	{
+		return NULL;
+	}
 
 	CExpression *pexpr = NULL;
 	if (convertsToIn())
