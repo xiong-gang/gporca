@@ -836,7 +836,7 @@ CExpression *
 CConstraintInterval::PexprConstructArrayScalar(IMemoryPool *pmp) const
 {
 	// This must have many members to be an array in
-	if (1 < m_pdrgprng->UlLength())
+	if (1 >= m_pdrgprng->UlLength())
 	{
 		return NULL;
 	}

@@ -4800,8 +4800,12 @@ CTranslatorExprToDXL::PdxlArrayExprOnPartKey
 	// convert the interval into a disjunction and call the existing disjunction method
 	CExpression *pexprdisj = pcnstrinvl->PexprConstructDisjunctionScalar(m_pmp);
 
-	return PdxlnConjDisjOnPartKey(pexprdisj, pcrPartKey, pmdidTypePartKey, ulPartLevel, pfLTComparison, pfGTComparison, pfEQComparison);
+	CDXLNode* pdxln = PdxlnConjDisjOnPartKey(pexprdisj, pcrPartKey, pmdidTypePartKey, ulPartLevel, pfLTComparison, pfGTComparison, pfEQComparison);
+	pexprdisj->Release();
+	pcnstrinvl->Release();
 
+
+	return pdxln;
 }
 
 //---------------------------------------------------------------------------
