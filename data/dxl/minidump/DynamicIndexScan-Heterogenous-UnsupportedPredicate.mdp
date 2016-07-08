@@ -801,16 +801,12 @@
           <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="false" IsByValue="true" Value="1"/>
         </dxl:PropagationExpression>
         <dxl:PrintableFilter>
-          <dxl:Or>
-            <dxl:Comparison ComparisonOperator="&lt;" OperatorMdid="0.97.1.0">
-              <dxl:Ident ColId="0" ColName="c1" TypeMdid="0.23.1.0"/>
+          <dxl:ArrayComp OperatorName="&lt;&gt;" OperatorMdid="0.518.1.0" OperatorType="All">
+            <dxl:Ident ColId="0" ColName="c1" TypeMdid="0.23.1.0"/>
+            <dxl:Array ArrayType="0.1007.1.0" ElementType="0.23.1.0" MultiDimensional="false">
               <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="false" IsByValue="true" Value="50"/>
-            </dxl:Comparison>
-            <dxl:Comparison ComparisonOperator="&gt;" OperatorMdid="0.521.1.0">
-              <dxl:Ident ColId="0" ColName="c1" TypeMdid="0.23.1.0"/>
-              <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="false" IsByValue="true" Value="50"/>
-            </dxl:Comparison>
-          </dxl:Or>
+            </dxl:Array>
+          </dxl:ArrayComp>
         </dxl:PrintableFilter>
       </dxl:PartitionSelector>
       <dxl:DynamicTableScan PartIndexId="1">
