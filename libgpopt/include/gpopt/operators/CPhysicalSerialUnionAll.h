@@ -75,7 +75,7 @@ namespace gpopt
 			virtual
 			EOperatorId Eopid() const
 			{
-				return EopPhysicalUnionAll;
+				return EopPhysicalSerialUnionAll;
 			}
 
 			virtual
