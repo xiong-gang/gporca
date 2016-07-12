@@ -1729,7 +1729,16 @@ CExpressionHandle::UlNextOptimizedChildIndex
 	)
 	const
 {
-	CPhysical::EChildExecOrder eceo = CPhysical::PopConvert(Pop())->Eceo();
+
+	CPhysical::EChildExecOrder eceo;
+	if(Pop()->FScalar())
+	{
+		eceo = CPhysical::EceoLeftToRight;
+	}
+	else
+	{
+		eceo = CPhysical::PopConvert(Pop())->Eceo();
+	}
 
 	ULONG ulNextChildIndex = ULONG_MAX;
 	if (CPhysical::EceoRightToLeft == eceo)

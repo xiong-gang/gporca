@@ -162,7 +162,11 @@ CJobGroupOptimization::FScheduleGroupExpressions
 		// optimization level
 		if (psc->Peng()->FOptimizeChild(m_pgexprOrigin, pgexpr, m_poc, EolCurrent()))
 		{
-			const ULONG ulOptRequests = CPhysical::PopConvert(pgexpr->Pop())->UlOptRequests();
+			ULONG ulOptRequests = 1;
+			if (pgexpr->Pop()->FPhysical())
+			{
+				ulOptRequests = CPhysical::PopConvert(pgexpr->Pop())->UlOptRequests();
+			}
 			for (ULONG ul = 0; ul < ulOptRequests; ul++)
 			{
 				// schedule an optimization job for each request

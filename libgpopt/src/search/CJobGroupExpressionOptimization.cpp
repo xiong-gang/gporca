@@ -109,9 +109,9 @@ CJobGroupExpressionOptimization::Init
 	GPOS_ASSERT(NULL != poc);
 
 	CJobGroupExpression::Init(pgexpr);
-	GPOS_ASSERT(pgexpr->Pop()->FPhysical());
+	// GPOS_ASSERT(pgexpr->Pop()->FPhysical());
 	GPOS_ASSERT(pgexpr->Pgroup() == poc->Pgroup());
-	GPOS_ASSERT(ulOptReq <= CPhysical::PopConvert(pgexpr->Pop())->UlOptRequests());
+	// GPOS_ASSERT(ulOptReq <= CPhysical::PopConvert(pgexpr->Pop())->UlOptRequests());
 
 	m_jsm.Init
 			(
@@ -135,7 +135,11 @@ CJobGroupExpressionOptimization::Init
 	m_pdrgpdp = NULL;
 	m_pexprhdlPlan = NULL;
 	m_pexprhdlRel = NULL;
-	m_eceo = CPhysical::PopConvert(pgexpr->Pop())->Eceo();
+	m_eceo = CPhysical::EceoLeftToRight;
+	if (pgexpr->Pop()->FPhysical())
+	{
+		m_eceo = CPhysical::PopConvert(pgexpr->Pop())->Eceo();
+	}
 	m_ulArity = pgexpr->UlArity();
 	m_ulChildIndex = ULONG_MAX;
 
@@ -197,7 +201,13 @@ CJobGroupExpressionOptimization::InitChildGroupsOptimization
 	// initialize required plan properties computation
 	m_pexprhdlPlan = GPOS_NEW(psc->PmpGlobal()) CExpressionHandle(psc->PmpGlobal());
 	m_pexprhdlPlan->Attach(m_pgexpr);
-	if (0 < m_ulArity)
+
+	// Scalars only have one child
+	if(m_pgexpr->Pop()->FScalar())
+	{
+		m_ulChildIndex = 0;
+	}
+	else if (0 < m_ulArity)
 	{
 		m_ulChildIndex = m_pexprhdlPlan->UlFirstOptimizedChildIndex();
 	}
@@ -241,22 +251,26 @@ CJobGroupExpressionOptimization::EevtInitialize
 	// get a job pointer
 	CJobGroupExpressionOptimization *pjgeo = PjConvert(pjOwner);
 
-	CExpressionHandle exprhdl(psc->PmpGlobal());
-	exprhdl.Attach(pjgeo->m_pgexpr);
-	exprhdl.DeriveProps(NULL /*pdpctxt*/);
-	if (!psc->Peng()->FCheckReqdProps(exprhdl, pjgeo->m_poc->Prpp(), pjgeo->m_ulOptReq))
+	if(!pjgeo->m_pgexpr->Pop()->FScalar())
 	{
-		return eevFinalized;
-	}
+		CExpressionHandle exprhdl(psc->PmpGlobal());
+		exprhdl.Attach(pjgeo->m_pgexpr);
+		exprhdl.DeriveProps(NULL /*pdpctxt*/);
 
-	// check if job can be early terminated without optimizing any child
-	CCost costLowerBound(GPOPT_INVALID_COST);
-	if (psc->Peng()->FSafeToPrune(pjgeo->m_pgexpr, pjgeo->m_poc->Prpp(), NULL /*pccChild*/, ULONG_MAX /*ulChildIndex*/, &costLowerBound))
-	{
-		(void) pjgeo->m_pgexpr->PccComputeCost(psc->PmpGlobal(), pjgeo->m_poc, pjgeo->m_ulOptReq, NULL /*pdrgpoc*/, true /*fPruned*/, costLowerBound);
-		return eevFinalized;
-	}
 
+		if (!psc->Peng()->FCheckReqdProps(exprhdl, pjgeo->m_poc->Prpp(), pjgeo->m_ulOptReq))
+		{
+			return eevFinalized;
+		}
+
+		// check if job can be early terminated without optimizing any child
+		CCost costLowerBound(GPOPT_INVALID_COST);
+		if (psc->Peng()->FSafeToPrune(pjgeo->m_pgexpr, pjgeo->m_poc->Prpp(), NULL /*pccChild*/, ULONG_MAX /*ulChildIndex*/, &costLowerBound))
+		{
+			(void) pjgeo->m_pgexpr->PccComputeCost(psc->PmpGlobal(), pjgeo->m_poc, pjgeo->m_ulOptReq, NULL /*pdrgpoc*/, true /*fPruned*/, costLowerBound);
+			return eevFinalized;
+		}
+	}
 	pjgeo->InitChildGroupsOptimization(psc);
 
 	return eevOptimizingChildren;
@@ -383,12 +397,60 @@ CJobGroupExpressionOptimization::ScheduleChildGroupsJobs
 	CGroup *pgroupChild = (*m_pgexpr)[m_ulChildIndex];
 	if (pgroupChild->FScalar())
 	{
+		//ComputeCurrentChildRequirements(psc);
+		if (m_fChildOptimizationFailed)
+		{
+			return;
+		}
+		m_pexprhdlPlan->Prpp(m_ulChildIndex)->AddRef();
+
+		// use current stats for optimizing current child
+		DrgPstat *pdrgpstatCtxt = GPOS_NEW(psc->PmpGlobal()) DrgPstat(psc->PmpGlobal());
+		CUtils::AddRefAppend<IStatistics, CleanupStats>(pdrgpstatCtxt, m_pdrgpstatCurrentCtxt);
+
+		// compute required relational properties
+		CReqdPropRelational *prprel = NULL;
+
+		prprel = m_pexprhdlRel->Prprel(m_ulChildIndex);
+
+		GPOS_ASSERT(NULL != prprel);
+		prprel->AddRef();
+
+		// schedule optimization job for current child group
+		COptimizationContext *pocChild = GPOS_NEW(psc->PmpGlobal()) COptimizationContext
+										(
+										pgroupChild,
+										m_pexprhdlPlan->Prpp(m_ulChildIndex),
+										prprel,
+										pdrgpstatCtxt,
+										psc->Peng()->UlCurrSearchStage()
+										);
+
+		if (pgroupChild == m_pgexpr->Pgroup() && pocChild->FMatch(m_poc))
+		{
+			// this is to prevent deadlocks, child context cannot be the same as parent context
+			m_fChildOptimizationFailed = true;
+			pocChild->Release();
+
+			return;
+		}
+
+		CJobGroupOptimization::ScheduleJob(psc, pgroupChild, m_pgexpr, pocChild, this);
+		pocChild->Release();
+
+		// advance to next child
 		if (!m_pexprhdlPlan->FNextChildIndex(&m_ulChildIndex))
 		{
 			// child group optimization is complete
 			SetChildrenScheduled();
 		}
 
+//		if (!m_pexprhdlPlan->FNextChildIndex(&m_ulChildIndex))
+//		{
+//			// child group optimization is complete
+//			SetChildrenScheduled();
+//		}
+//
 		return;
 	}
 

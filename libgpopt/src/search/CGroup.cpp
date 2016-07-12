@@ -1588,6 +1588,9 @@ CGroup::PgexprBestPromise
 {
 	GPOS_ASSERT(NULL != pgexprToMatch);
 
+	if(pgexprToMatch->Pop()->FScalar())
+		return pgexprToMatch;
+
 	CReqdPropRelational *prprel = GPOS_NEW(pmp) CReqdPropRelational(GPOS_NEW(pmp) CColRefSet(pmp));
 	DrgPstat *pdrgpstatCtxt = GPOS_NEW(pmp) DrgPstat(pmp);
 

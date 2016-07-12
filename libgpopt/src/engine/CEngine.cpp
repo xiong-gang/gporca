@@ -2152,6 +2152,9 @@ CEngine::FCheckEnfdProps
 {
 	GPOS_CHECK_ABORT;
 
+	if(pgexpr->Pop()->FScalar())
+		return true;
+
 	if (GPOS_FTRACE(EopttracePrintMemoEnforcement))
 	{
 		CAutoTrace at(m_pmp);

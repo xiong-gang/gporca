@@ -250,6 +250,8 @@ CGroupExpression::FValid
 	DrgPoc *pdrgpocChild
 	)
 {
+	if(m_pop->FScalar()) return true;
+
 	GPOS_ASSERT(m_pop->FPhysical());
 
 	return CPhysical::PopConvert(m_pop)->FValidContext(pmp, poc, pdrgpocChild);
@@ -447,6 +449,15 @@ CGroupExpression::PccComputeCost
 {
 	GPOS_ASSERT(NULL != poc);
 	GPOS_ASSERT_IMP(!fPruned, NULL != pdrgpoc);
+
+	if (m_pop->FScalar())
+	{
+		CCostContext *pcc = GPOS_NEW(pmp) CCostContext(pmp, poc, ulOptReq, this);
+		pcc->SetState(CCostContext::estCosting);
+		pcc->SetCost(CCost(0.0));
+		pcc->SetState(CCostContext::estCosted);
+		return PccInsertBest(pcc);
+	}
 
 	if (!fPruned && !FValid(pmp, poc, pdrgpoc))
 	{
