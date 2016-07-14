@@ -40,81 +40,32 @@ using namespace gpmd;
 
 //---------------------------------------------------------------------------
 //	@function:
-//		CExpressionPreprocessorConvert2InTest::fContainsArrayExpr
+//		CExpressionPreprocessorConvert2InTest::fCountOperator
 //
 //	@doc:
-//		checks if the expression or any of its children contains an array predicate
+//		counts the number of times a certain operator appears
 //
 //---------------------------------------------------------------------------
-BOOL
-CExpressionPreprocessorConvert2InTest::fContainsArrayExpr
+INT
+CExpressionPreprocessorConvert2InTest::fCountOperator
 	(
-		CExpression *pexpr
+		CExpression *pexpr,
+		INT Eopid
 	)
 {
-	if (CPredicateUtils::FCompareIdentToConstArray(pexpr))
+	INT iopCnt = 0;
+	if (pexpr->Pop()->Eopid() == Eopid)
 	{
-		return true;
+		iopCnt += 1;
 	}
 
-	BOOL fchildIsArray = false;
-	for (ULONG ulChild = 0; !fchildIsArray && ulChild < pexpr->UlArity(); ulChild++)
+
+	for (ULONG ulChild = 0; ulChild < pexpr->UlArity(); ulChild++)
 	{
-		fchildIsArray = fContainsArrayExpr((*pexpr)[ulChild]);
+		iopCnt += fCountOperator((*pexpr)[ulChild], Eopid);
 	}
-	return fchildIsArray;
+	return iopCnt;
 }
-
-////---------------------------------------------------------------------------
-////	@function:
-////		CExpressionPreprocessorConvert2InTest::PExprCreateScalarArray
-////
-////	@doc:
-////		Takes ownership of the passed array.
-////
-////---------------------------------------------------------------------------
-//CExpression*
-//CExpressionPreprocessorConvert2InTest::PExprCreateScalarArray(IMemoryPool *pmp, DrgPexpr *prngexprScalarConsts)
-//{
-//	GPOS_ASSERT(NULL != prngexprScalarConsts);
-//	GPOS_ASSERT(0 < prngexprScalarConsts->UlLength());
-//
-//	CScalarConst *pScalarConst = CScalarConst::PopConvert((*prngexprScalarConsts)[0]->pop());
-//	IMDId *pmdidArrType = pScalarConst->PmdidType();
-//
-//	// Used twice
-//	pmdidArrType->AddRef();
-//	pmdidArrType->AddRef();
-//
-//	return GPOS_NEW(pmp) CExpression
-//								(
-//								pmp,
-//								GPOS_NEW(pmp) CScalarArray(pmp, pmdidArrType, pmdidArrType, false /*fMultiDimensional*/),
-//								prngexprScalarConsts
-//								);
-//}
-//
-//CExpression*
-//CExpressionPreprocessorConvert2InTest::PExprCreateArrayInExpression(IMemoryPool *pmp, CExpression *pexprConstArray)
-//{
-//
-//
-//	CExpression *pexprIdent = CUtils::PexprScalarIdent(pmp, m_pcr);
-//
-//	CExpression *pexprArrayCmp =
-//			GPOS_NEW(pmp) CExpression
-//						(
-//						pmp,
-//						GPOS_NEW(pmp) CScalarArrayCmp(pmp,
-//								pmdidCmpOp,
-//								GPOS_NEW(pmp) CWStringConst(pmp, strOp.Wsz()),
-//								isIn ? CScalarArrayCmp::EarrcmpAny : CScalarArrayCmp::EarrcmpAll),
-//						pexprIdent,
-//						pexprArray
-//						);
-//
-//	return pexprArrayCmp;
-//}
 
 //---------------------------------------------------------------------------
 //	@function:
@@ -132,6 +83,7 @@ CExpressionPreprocessorConvert2InTest::EresUnittest()
 		{
 		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicate),
 		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvertArrayWithEquals),
+		GPOS_UNITTEST_FUNC(EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree)
 		};
 
 	return CUnittest::EresExecute(rgut, GPOS_ARRAY_SIZE(rgut));
@@ -139,10 +91,20 @@ CExpressionPreprocessorConvert2InTest::EresUnittest()
 
 //---------------------------------------------------------------------------
 //	@function:
-//		CExpressionPreprocessorConvert2InTest::EresUnittest_PreProcessConvert2InPredicate
+//		CExpressionPreprocessorConvert2InTest
+//				::EresUnittest_PreProcessConvert2InPredicate
 //
 //	@doc:
-//		Test of preprocessing
+//		Tests that a expression with nested OR statements will convert them into
+//		an array IN statement. The statement we are testing looks is equivalent to
+//		+LogicalGet
+//			+-ScalarBoolOp (Or)
+//				+-ScalarBoolCmp
+//					+-ScalarId
+//					+-ScalarConst
+//				+-ScalarBoolCmp
+//					+-ScalarId
+//					+-ScalarConst
 //
 //---------------------------------------------------------------------------
 GPOS_RESULT
@@ -162,45 +124,43 @@ CExpressionPreprocessorConvert2InTest::EresUnittest_PreProcessConvert2InPredicat
 	CAutoOptCtxt aoc(pmp, &mda, NULL /*pceeval*/, CTestUtils::Pcm(pmp));
 
 	CExpression *pexprGet = CTestUtils::PexprLogicalGet(pmp);
-	CColRef *pcrLeft = CDrvdPropRelational::Pdprel(pexprGet->PdpDerive())->PcrsOutput()->PcrAny();
+	COperator *popGet = pexprGet->Pop();
+	popGet->AddRef();
 
+	// Create a disjunct, add as a child
+	CColRef *pcrLeft = CDrvdPropRelational::Pdprel(pexprGet->PdpDerive())->PcrsOutput()->PcrAny();
 	CScalarBoolOp *pcsclrOp = GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopOr);
 	CExpression *pexprDisjunct =
 			GPOS_NEW(pmp) CExpression(
 									pmp,
 									pcsclrOp,
 									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 1 /*iVal*/)),
-									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 2 /*iVal*/))
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 2 /*iVal*/)),
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrLeft)
 									);
 
-	CExpression *pexprConvert = CExpressionPreprocessor::PexprConvert2In(pmp, pexprDisjunct);
-
-	GPOS_ASSERT(fContainsArrayExpr(pexprConvert));
-
+	CExpression *pexprGetWithChildren = GPOS_NEW(pmp) CExpression(pmp, popGet, pexprDisjunct);
 	pexprGet->Release();
-	pexprDisjunct->Release();
+
+	GPOS_ASSERT(3 == fCountOperator(pexprGetWithChildren, COperator::EopScalarCmp));
+
+	CExpression *pexprConvert = CExpressionPreprocessor::PexprConvert2In(pmp, pexprGetWithChildren);
+
+	GPOS_ASSERT(1 == fCountOperator(pexprConvert, COperator::EopScalarArrayCmp));
+	GPOS_ASSERT(1 == fCountOperator(pexprConvert, COperator::EopScalarCmp));
+	// the OR node should be removed because there is only one child
+	GPOS_ASSERT(0 == fCountOperator(pexprConvert, COperator::EopScalarBoolOp));
+
+	pexprGetWithChildren->Release();
 	pexprConvert->Release();
 
 	return GPOS_OK;
-//
-//	{
-//		CAutoTrace at(pmp);
-//		at.Os() << "Disj:\n";
-//		pexprDisjunct->OsPrint(at.Os());
-//		at.Os() << "convert:\n";
-//		pexprConvert->OsPrint(at.Os());
-//	}
-//
-//	pexprConvert->Release();
-//	pexprDisjunct->Release();
-//	pexprGet->Release();
-//
-//	return GPOS_OK;
 }
 
 //---------------------------------------------------------------------------
 //	@function:
-//		CExpressionPreprocessorConvert2InTest::EresUnittest_PreProcessConvertArrayWithEquals
+//		CExpressionPreprocessorConvert2InTest
+//				::EresUnittest_PreProcessConvertArrayWithEquals
 //
 //	@doc:
 //		Test that an array expression like A IN (1,2,3,4,5) OR A = 6 OR A = 7
@@ -224,10 +184,10 @@ CExpressionPreprocessorConvert2InTest::EresUnittest_PreProcessConvertArrayWithEq
 	CAutoOptCtxt aoc(pmp, &mda, NULL /*pceeval*/, CTestUtils::Pcm(pmp));
 
 	CExpression *pexpr = CTestUtils::PexprLogicalSelectArrayCmp(pmp);
-	// Get a ref to the comparison column
+	// get a ref to the comparison column
 	CColRef *pcrLeft = CDrvdPropRelational::Pdprel(pexpr->PdpDerive())->PcrsOutput()->PcrAny();
 
-	// Remove the array child and then make an OR node with two equality comparisons
+	// remove the array child and then make an OR node with two equality comparisons
 	CExpression *pexprArrayComp = (*pexpr->PdrgPexpr())[1];
 	GPOS_ASSERT(CUtils::FScalarArrayCmp(pexprArrayComp));
 
@@ -238,17 +198,103 @@ CExpressionPreprocessorConvert2InTest::EresUnittest_PreProcessConvertArrayWithEq
 
 	CScalarBoolOp *pcsclrOp = GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopOr);
 	CExpression *pexprDisjunct = GPOS_NEW(pmp) CExpression(pmp, pcsclrOp, prngexprDisjChildren);
-	pexprArrayComp->AddRef(); // needed for Replace
+	pexprArrayComp->AddRef(); // needed for Replace()
 	pexpr->PdrgPexpr()->Replace(1, pexprDisjunct);
+
+	GPOS_ASSERT(2 == fCountOperator(pexpr, COperator::EopScalarCmp));
 
 	CExpression *pexprConvert = CExpressionPreprocessor::PexprConvert2In(pmp, pexprDisjunct);
 
-	GPOS_ASSERT(fContainsArrayExpr(pexprConvert));
-	pexprDisjunct->DbgPrint();
-	pexprConvert->DbgPrint();
+	GPOS_ASSERT(0 == fCountOperator(pexprConvert, COperator::EopScalarCmp));
+	GPOS_ASSERT(7 == fCountOperator(pexprConvert, COperator::EopScalarConst));
+	GPOS_ASSERT(1 == fCountOperator(pexprConvert, COperator::EopScalarArrayCmp));
 
 	pexpr->Release();
 	pexprConvert->Release();
+
+	return GPOS_OK;
+}
+
+
+//---------------------------------------------------------------------------
+//	@function:
+//		CExpressionPreprocessorConvert2InTest
+//				::EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree
+//
+//	@doc:
+//		Test of preprocessing with a whole expression tree. The expression tree
+//		looks like this predicate (x = 1 OR x = 2 OR (x = y AND (y = 3 OR y = 4)))
+//		which should be converted to (x in (1,2) OR (x = y AND y IN (3,4)))
+//
+//---------------------------------------------------------------------------
+GPOS_RESULT
+CExpressionPreprocessorConvert2InTest::EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree()
+{
+	CAutoMemoryPool amp;
+	IMemoryPool *pmp = amp.Pmp();
+
+	// reset metadata cache
+	CMDCache::Reset();
+
+	// setup a file-based provider
+	CMDProviderMemory *pmdp = CTestUtils::m_pmdpf;
+	pmdp->AddRef();
+	CMDAccessor mda(pmp, CMDCache::Pcache(), CTestUtils::m_sysidDefault, pmdp);
+
+	CAutoOptCtxt aoc(pmp, &mda, NULL /*pceeval*/, CTestUtils::Pcm(pmp));
+
+	CExpression *pexprGet = CTestUtils::PexprLogicalGet(pmp);
+	COperator *popGet = pexprGet->Pop();
+	popGet->AddRef();
+
+	// get a column ref from the outermost Get expression
+	DrgPcr *pdrgpcr = CDrvdPropRelational::Pdprel(pexprGet->PdpDerive())->PcrsOutput()->Pdrgpcr(pmp);
+	GPOS_ASSERT(1 < pdrgpcr->UlLength());
+	CColRef *pcrLeft = (*pdrgpcr)[0];
+	CColRef *pcrRight = (*pdrgpcr)[1];
+
+	// inner most OR
+	CScalarBoolOp *pcsclrOpOrInner = GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopOr);
+	CExpression *pexprDisjunctInner =
+			GPOS_NEW(pmp) CExpression(
+									pmp,
+									pcsclrOpOrInner,
+									CUtils::PexprScalarEqCmp(pmp, pcrRight, CUtils::PexprScalarConstInt4(pmp, 3 /*iVal*/)),
+									CUtils::PexprScalarEqCmp(pmp, pcrRight, CUtils::PexprScalarConstInt4(pmp, 4 /*iVal*/))
+									);
+	// middle and expression
+	CScalarBoolOp *pcsclrOpAnd = GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopAnd);
+	CExpression *pexprConjunct =
+			GPOS_NEW(pmp) CExpression(
+									pmp,
+									pcsclrOpAnd,
+									pexprDisjunctInner,
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, pcrRight)
+									);
+	// outer most OR
+	CScalarBoolOp *pcsclrOp = GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopOr);
+	CExpression *pexprDisjunct =
+			GPOS_NEW(pmp) CExpression(
+									pmp,
+									pcsclrOp,
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 1)),
+									CUtils::PexprScalarEqCmp(pmp, pcrLeft, CUtils::PexprScalarConstInt4(pmp, 2)),
+									pexprConjunct
+									);
+
+	CExpression *pexprGetWithChildren = GPOS_NEW(pmp) CExpression(pmp, popGet, pexprDisjunct);
+	pexprGet->Release();
+
+	GPOS_ASSERT(5 == fCountOperator(pexprGetWithChildren, COperator::EopScalarCmp));
+
+	CExpression *pexprConvert = CExpressionPreprocessor::PexprConvert2In(pmp, pexprGetWithChildren);
+
+	GPOS_ASSERT(2 == fCountOperator(pexprConvert, COperator::EopScalarArrayCmp));
+	GPOS_ASSERT(1 == fCountOperator(pexprConvert, COperator::EopScalarCmp));
+
+	pexprGetWithChildren->Release();
+	pexprConvert->Release();
+	pdrgpcr->Release();
 
 	return GPOS_OK;
 }

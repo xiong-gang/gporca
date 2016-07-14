@@ -27,15 +27,16 @@ namespace gpopt
 	{
 		private:
 
-			// checks if the expression or any of its children contains an array predicate
-			static BOOL fContainsArrayExpr(CExpression *pexpr);
-
 			static CExpression* PExprCreateScalarArray(IMemoryPool *pmp);
+
+			// counts the occurrences of a given operator id in an expression tree
+			static INT fCountOperator(CExpression *pexpr, INT Eopid);
 
 		public:
 
 			// unittests
 			static GPOS_RESULT EresUnittest_PreProcessConvert2InPredicate();
+			static GPOS_RESULT EresUnittest_PreProcessConvert2InPredicateDeepExpressionTree();
 			static GPOS_RESULT EresUnittest_PreProcessConvertArrayWithEquals();
 			static GPOS_RESULT EresUnittest();
 
