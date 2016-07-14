@@ -124,6 +124,8 @@ add_executable(gporca_test
                src/unittest/gpopt/operators/CContradictionTest.cpp
                include/unittest/gpopt/operators/CExpressionPreprocessorTest.h
                src/unittest/gpopt/operators/CExpressionPreprocessorTest.cpp
+               include/unittest/gpopt/operators/CExpressionPreprocessorConvert2InTest.h
+               src/unittest/gpopt/operators/CExpressionPreprocessorConvert2InTest.cpp
                include/unittest/gpopt/operators/CPredicateUtilsTest.h
                src/unittest/gpopt/operators/CPredicateUtilsTest.cpp
                include/unittest/gpopt/operators/CCNFConverterTest.h
@@ -212,6 +214,7 @@ endif()
 add_orca_test(CArrayExpansionTest)
 add_orca_test(CMiniDumperDXLTest)
 add_orca_test(CExpressionPreprocessorTest)
+add_orca_test(CExpressionPreprocessorConvert2InTest)
 add_orca_test(CWindowTest)
 add_orca_test(CICGTest)
 add_orca_test(CMultilevelPartitionTest)

@@ -183,6 +183,9 @@ namespace gpopt
 			// private copy ctor
 			CExpressionPreprocessor(const CExpressionPreprocessor &);
 
+			static
+			CExpression *PexprConvert2In(IMemoryPool *pmp, DrgPexpr *pdrgpexprCollapse, BOOL fAnd);
+
 		public:
 
 			// main driver
@@ -196,6 +199,10 @@ namespace gpopt
 			// derive constraints on given expression
 			static
 			CExpression *PexprAddPredicatesFromConstraints(IMemoryPool *pmp, CExpression *pexpr);
+
+			// TODO(marc): write doc
+			static
+			CExpression *PexprConvert2In(IMemoryPool *pmp, CExpression *pexpr);
 
 	}; // class CExpressionPreprocessor
 }

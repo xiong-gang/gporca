@@ -40,6 +40,17 @@ using namespace gpopt;
 // maximum number of equality predicates to be derived from existing equalities
 #define GPOPT_MAX_DERIVED_PREDS 50
 
+void print(IMemoryPool *pmp, CExpression *pexpr, bool printme, const char *msg = NULL)
+{
+	if(!printme)
+		return;
+
+	CAutoTrace at(pmp);
+	if (msg)
+		at.Os() << msg << "\n";
+	pexpr->OsPrint(at.Os());
+}
+
 //---------------------------------------------------------------------------
 //	@function:
 //		CExpressionPreprocessor::PexprEliminateSelfComparison
@@ -531,6 +542,137 @@ CExpressionPreprocessor::PexprRemoveSuperfluousOuterRefs
 	return GPOS_NEW(pmp) CExpression(pmp, pop, pdrgpexprChildren);
 }
 
+CExpression *
+CExpressionPreprocessor::PexprConvert2In
+	(
+	IMemoryPool *pmp,
+	DrgPexpr *pdrgpexprCollapse,
+	BOOL fAnd
+	)
+{
+	GPOS_ASSERT(NULL != pdrgpexprCollapse);
+	GPOS_ASSERT(!fAnd);
+
+	pdrgpexprCollapse->AddRef();
+
+	CExpression *pexprPreCollapse = CPredicateUtils::PexprConjDisj(pmp, pdrgpexprCollapse, fAnd);
+	// DrgPcrs *pdrgpcr = NULL;
+	// CConstraint *pcnst = CConstraint::PcnstrFromScalarExpr(pmp, pexprPreCollapse, &pdrgpcr);
+	// CExpression *pexprPostCollapse = pcnst->PexprScalar(pmp);
+
+	// pexprPreCollapse->Release();
+	// pcnst->Release();
+
+	// return pexprPostCollapse;
+
+	return pexprPreCollapse;
+}
+
+// returned expression is caller owned
+//CExpression *
+//CExpressionPreprocessor::PexprConvert2InCopy
+//	(
+//	IMemoryPool *pmp,
+//	CExpression *pexpr // does not take ownership
+//	)
+//{
+//	COperator *pop = pexpr->Pop();
+//	pop->AddRef();
+//
+//	DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
+//	for (ULONG ulChild = 0; ulChild < pexpr->UlArity(); ulChild++)
+//	{
+//		pdrgpexpr->Append(PexprConvert2InCopy((*pdrgexpr)[ulChild]));
+//	}
+//
+//	return GPOS_NEW(pmp) CExpression(pmp, )
+//}
+
+// returned expression is caller owned
+CExpression *
+CExpressionPreprocessor::PexprConvert2In
+	(
+	IMemoryPool *pmp,
+	CExpression *pexpr // does not take ownership
+	)
+{
+	// protect against stack overflow during recursion
+	GPOS_CHECK_STACK_SIZE;
+	GPOS_ASSERT(NULL != pmp);
+	GPOS_ASSERT(NULL != pexpr);
+
+	COperator *pop = pexpr->Pop();
+	pop->AddRef();
+
+	if (CPredicateUtils::FOr(pexpr))
+	{
+		// derive constraints on all of the simple scalar children
+		// and add them to a new AND or OR expression
+		DrgPexpr *pdrgpexprCollapse = GPOS_NEW(pmp) DrgPexpr(pmp);
+		DrgPexpr *pdrgpexprRemainder = GPOS_NEW(pmp) DrgPexpr(pmp);
+		for (ULONG ulChild = 0; ulChild < pexpr->UlArity(); ulChild++)
+		{
+			CExpression *pexprChild = (*pexpr)[ulChild];
+
+			if (CPredicateUtils::FCompareIdentToConst(pexprChild) &&
+					(IMDType::EcmptEq == CScalarCmp::PopConvert(pexprChild->Pop())->Ecmpt()))
+			{
+				pdrgpexprCollapse->Append(CExpressionUtils::PexprUnnest(pmp, pexprChild));
+				// recursively copy the expression and add to the array.
+			}
+			else
+			{
+				// recursively copy the remainder and add to the array
+				pdrgpexprRemainder->Append(CExpressionUtils::PexprUnnest(pmp, pexprChild));
+			}
+		}
+
+		if (0 == pdrgpexprCollapse->UlLength() || 0 != pdrgpexprRemainder->UlLength())
+		{
+			// nothing to collapse or something not collapsable.
+			// Add the new expressions to a single array and create a copy expression
+			DrgPexpr *pdrgpexprCombined = GPOS_NEW(pmp) DrgPexpr(pmp);
+			CUtils::AddRefAppend<CExpression, CleanupRelease>(pdrgpexprCombined, pdrgpexprCollapse);
+			CUtils::AddRefAppend<CExpression, CleanupRelease>(pdrgpexprCombined, pdrgpexprRemainder);
+			pdrgpexprCollapse->Release();
+			pdrgpexprRemainder->Release();
+			return GPOS_NEW(pmp) CExpression(pmp, pop, pdrgpexprCombined);
+		}
+
+		// CExpression *pexprResult = PexprConvert2In(pmp, pdrgpexprCollapse, CPredicateUtils::FAnd(pexpr));
+
+		// owned
+		DrgPcrs *pdrgpcr = NULL;
+
+		// owned
+		CExpression *pexprPreCollapse =
+				GPOS_NEW(pmp) CExpression(pmp, GPOS_NEW(pmp) CScalarBoolOp(pmp, CScalarBoolOp::EboolopOr), pdrgpexprCollapse);
+
+		// owned
+		CConstraint *pcnst = CConstraint::PcnstrFromScalarExpr(pmp, pexprPreCollapse, &pdrgpcr);
+		// owned
+		CExpression *pexprPostCollapse = pcnst->PexprScalar(pmp);
+
+		pexprPreCollapse->Release();
+
+		// Release only releases the top expression (does not recurse to children).
+		DrgPexpr *pdrgpexprCombined = GPOS_NEW(pmp) DrgPexpr(pmp);
+		pexprPostCollapse->AddRef();
+		pdrgpexprCombined->Append(pexprPostCollapse);
+		CUtils::AddRefAppend<CExpression, CleanupRelease>(pdrgpexprCombined, pdrgpexprRemainder);
+		//pdrgpexprCollapse->Release();
+		pdrgpexprRemainder->Release();
+		pcnst->Release();
+		CRefCount::SafeRelease(pdrgpcr);
+		CExpression *p = GPOS_NEW(pmp) CExpression(pmp, pop, pdrgpexprCombined);
+		p->DbgPrint();
+		return p;
+	}
+
+	// TODO recurse through children
+	return CExpressionUtils::PexprUnnest(pmp, pexpr);
+
+}
 
 //---------------------------------------------------------------------------
 //	@function:
@@ -1560,7 +1702,6 @@ CExpressionPreprocessor::AddPredsToCTEProducers
 	phm->Release();
 }
 
-
 //---------------------------------------------------------------------------
 //	@function:
 //		CExpressionPreprocessor::PexprAddPredicatesFromConstraints
@@ -1577,16 +1718,30 @@ CExpressionPreprocessor::PexprAddPredicatesFromConstraints
 	CExpression *pexpr
 	)
 {
+	bool PRINT = false;
+
+	print(pmp, pexpr, PRINT, "Original Expr:\n");
+
 	// generate additional predicates from constraint properties
 	CColRefSet *pcrsProcessed = GPOS_NEW(pmp) CColRefSet(pmp);
 	CExpression *pexprConstraints = PexprFromConstraints(pmp, pexpr, pcrsProcessed);
+
+	print(pmp, pexpr, PRINT, "PexprFromConstraints:\n");
+
 	GPOS_CHECK_ABORT;
 	pcrsProcessed->Release();
 
 	// generate equality predicates for columns in equivalence classes
 	pcrsProcessed = GPOS_NEW(pmp) CColRefSet(pmp);
 	CExpression *pexprAddEqualityPreds = PexprAddEqualityPreds(pmp, pexprConstraints, pcrsProcessed);
+
+	print(pmp, pexpr, PRINT, "PexprAddEqualityPreds:\n");
+
+
 	CExpression *pexprEqualityNormalized = CNormalizer::PexprNormalize(pmp, pexprAddEqualityPreds);
+
+	print(pmp, pexpr, PRINT, "pexprEqualityNormalized:\n");
+
 	GPOS_CHECK_ABORT;
 	pcrsProcessed->Release();
 	pexprConstraints->Release();
@@ -1594,6 +1749,9 @@ CExpressionPreprocessor::PexprAddPredicatesFromConstraints
 
 	// remove generated duplicate predicates
 	CExpression *pexprDeduped = CExpressionUtils::PexprDedupChildren(pmp, pexprEqualityNormalized);
+
+	print(pmp, pexpr, PRINT, "Deduped:\n");
+
 	pexprEqualityNormalized->Release();
 
 	return pexprDeduped;
@@ -1868,6 +2026,15 @@ CExpressionPreprocessor::PexprPreprocess
 	GPOS_CHECK_ABORT;
 	pexprSimplified->Release();
 
+	//	print(pmp,pexprOuterRefsEleminated,true,"before normalizing predicates:");
+
+	// (3.5) ensure predicates are array IN or NOT IN where applicable
+//	CExpression *pexprConvert2In = PexprConvert2In(pmp,   );
+//	GPOS_CHECK_ABORT;
+//	pexprOuterRefsEleminated->Release();
+
+	//	print(pmp,pexprExprNormalized,true,"after normalizing predicates:");
+
 	// (4) trim unnecessary existential subqueries
 	CExpression *pexprTrimmed = PexprTrimExistentialSubqueries(pmp, pexprOuterRefsEleminated);
 	GPOS_CHECK_ABORT;
@@ -1904,6 +2071,7 @@ CExpressionPreprocessor::PexprPreprocess
 	pexprInferredPreds->Release();
 
 	// (11) remove duplicate AND/OR children
+	// we worked here yesterday, trying to remove duplication. This ended up being brittle
 	CExpression *pexprDeduped = CExpressionUtils::PexprDedupChildren(pmp, pexprSelfCompEliminated);
 	GPOS_CHECK_ABORT;
 	pexprSelfCompEliminated->Release();

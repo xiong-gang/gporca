@@ -99,6 +99,7 @@
 #include "unittest/gpopt/operators/CExpressionTest.h"
 #include "unittest/gpopt/operators/CPredicateUtilsTest.h"
 #include "unittest/gpopt/operators/CExpressionPreprocessorTest.h"
+#include "unittest/gpopt/operators/CExpressionPreprocessorConvert2InTest.h"
 #include "unittest/gpopt/operators/CContradictionTest.h"
 
 #include "unittest/gpopt/search/CSchedulerTest.h"
@@ -144,6 +145,7 @@ static gpos::CUnittest rgut[] =
 #endif  // !defined(GPOS_SunOS)
 	GPOS_UNITTEST_STD(CMiniDumperDXLTest),
 	GPOS_UNITTEST_STD(CExpressionPreprocessorTest),
+	GPOS_UNITTEST_STD(CExpressionPreprocessorConvert2InTest),
 	GPOS_UNITTEST_STD(CWindowTest),
 	GPOS_UNITTEST_STD(CICGTest),
 	GPOS_UNITTEST_STD(CMultilevelPartitionTest),

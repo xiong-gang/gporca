@@ -76,8 +76,6 @@ CConstraintInterval::CConstraintInterval
 	m_pcrsUsed->Include(pcr);
 }
 
-
-
 //---------------------------------------------------------------------------
 //	@function:
 //		CConstraintInterval::~CConstraintInterval

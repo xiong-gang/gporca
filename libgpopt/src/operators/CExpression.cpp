@@ -1260,6 +1260,7 @@ CExpression::OsPrint
 	}
 	
 	(void) m_pop->OsPrint(os);
+	os << " Refs(" << ((int)UlpRefCount()) << ")";
 	if (!m_pop->FScalar() && NULL != m_pstats)
 	{
 		os

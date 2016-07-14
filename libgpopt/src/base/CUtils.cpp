@@ -579,7 +579,8 @@ CUtils::PexprScalarCmp
 //		CUtils::PexprScalarCmp
 //
 //	@doc:
-//		Generate a comparison expression over two expressions
+//		Generate a comparison expression over two expressions. Takes ownership
+//		of the given expressions.
 //
 //---------------------------------------------------------------------------
 CExpression *
