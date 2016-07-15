@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 #include "unittest/gpopt/minidump/CArrayExpansionTest.h"
 #include "unittest/gpopt/CTestUtils.h"
+#include "gpos/task/CAutoTraceFlag.h"
 
 
 
