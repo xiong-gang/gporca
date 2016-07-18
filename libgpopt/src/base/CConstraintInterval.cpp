@@ -632,6 +632,25 @@ CConstraintInterval::PexprConstructScalar
 	}
 
 	// otherwise, we generate a disjunction of ranges
+	return PexprConstructDisjunctionScalar(pmp);
+}
+
+//---------------------------------------------------------------------------
+//	@function:
+//		CConstraintInterval::PexprConstructDisjunctionScalar
+//
+//	@doc:
+//		Construct scalar expression composed of disjunctions as opposed to an
+//		array IN or NOT IN expression
+//
+//---------------------------------------------------------------------------
+CExpression *
+CConstraintInterval::PexprConstructDisjunctionScalar
+	(
+		IMemoryPool *pmp
+	)
+	const
+{
 	DrgPexpr *pdrgpexpr = GPOS_NEW(pmp) DrgPexpr(pmp);
 
 	const ULONG ulLen = m_pdrgprng->UlLength();
